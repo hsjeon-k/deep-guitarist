@@ -1,0 +1,5 @@
+- read_midi.py: np array of velocities; squished
+- then numpy array to character representation
+- LSTM model: start with transfer learning?
+
+
