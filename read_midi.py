@@ -1,13 +1,16 @@
 from mido import MidiFile
 import pandas as pd
+import numpy as np
 
 import sys
 import pdb
 
+MIDI_NOTE_RANGE = 128
+
 def parse_midi_messages(filename):
     mid = MidiFile(filename)
 
-    for i, track in enumerate(mid.tracks):
+    for track_idx, track in enumerate(mid.tracks):
         msg_list = []
 
         for msg in track:
@@ -26,10 +29,32 @@ def parse_midi_messages(filename):
 
         msg_df = pd.DataFrame(msg_list, columns=['channel', 'type', 'note', 'time', 'velocity'])
 
-        if i == 4:
-            pdb.set_trace()
-        print('Track {}'.format(i))
+        notes_arr = np.zeros((MIDI_NOTE_RANGE, msg_df['time'].sum()))
+        last_timestep = 0
+        last_notes_on = np.zeros(MIDI_NOTE_RANGE).reshape(-1, 1)
+        curr_on_set = set([])
+        for msg_idx in range(len(msg_df)):
+            try:
+                msg_info = msg_df.iloc[msg_idx]
+                note, time, velocity = msg_info.loc[['note', 'time', 'velocity']]
+                if velocity == 0:
+                    curr_on_set.remove(note)
+                else:
+                    curr_on_set.add(note)
+                curr_timestep_on_notes = np.array([int(note in curr_on_set) for note in range(MIDI_NOTE_RANGE)])\
+                                         .reshape(-1, 1)
+                notes_arr[:, last_timestep:last_timestep + time] = last_notes_on
+
+                last_timestep = last_timestep + time
+                last_notes_on = curr_timestep_on_notes
+            except Exception as e:
+                pdb.set_trace()
+
+        notes_arr[:, last_timestep:] = last_notes_on
+
+        print('Track {}'.format(track_idx))
         print(msg_df)
+        print(notes_arr)
 
 
 def main():
