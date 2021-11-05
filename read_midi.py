@@ -22,6 +22,9 @@ import pdb
 MIDI_NOTE_RANGE = 128
 DEFAULT_TICKS_PER_BEAT = 960
 DEFAULT_TIME_SIG_NUM, DEFAULT_TIME_SIG_DENOM = 4, 4
+DEFAULT_KEY_SIG = 'C'
+KEY_OFFSETS = {'C' : 0, 'D' : 2, 'E' : 4,
+               'F' : 5, 'G' : 7, 'A' : 9, 'B' : 11}
 
 
 def round_to_nearest_multiple(x, multiple_of):
@@ -79,6 +82,8 @@ def parse_midi_messages(filename):
         # time signature e.g., 3/4, 4/4
         # initialize as default, but will be replaced later if specified (for each track)
         time_num, time_denom = DEFAULT_TIME_SIG_NUM, DEFAULT_TIME_SIG_DENOM
+        # key signature e.g., C, Db
+        key = DEFAULT_KEY_SIG
 
         msg_list = []
 
@@ -88,6 +93,9 @@ def parse_midi_messages(filename):
                 # read in time signature if specified
                 if msg.type == 'time_signature':
                     time_num, time_denom = msg.numerator, msg.denominator
+                # read in key signature if specified
+                elif msg.type == 'key_signature':
+                    key = msg.key
             # for non-meta messages, we will only consider messages relevant to playing notes.
             elif msg.type in ['note_on', 'note_off']:
                 try:
@@ -131,6 +139,20 @@ def parse_midi_messages(filename):
         # calculate each timestamp in 16th notes, relative to the previous message sent
         rounded_time = np.array([cumul_round[i+1] - cumul_round[i] for i in range(len(msg_df))])
 
+        # to normalize the input to C key, calculate how far the current key is from C
+        key_chars = list(key) # e.g., 'C#' will be converted to ['C', '#']; 'D' will be ['D']
+        if len(key_chars) < 1 or len(key_chars) > 2:
+            # don't normalize if the key signature is not recognized
+            print("MIDI file key signature {} not recognized; should be in the form of 'C', 'D#', etc. Skipping normalization...".format(key))
+            key_offset = 0
+        else:
+            # compute how many (half) notes the key is from C
+            key_offset = KEY_OFFSETS[key_chars[0].upper()]
+            if len(key_chars) == 2:
+                if key_chars[1] == '#':
+                    key_offset += 1
+                elif key_chars[1] == 'b':
+                    key_offset -= 1
 
         # initialize the 2D NumPy array
         notes_arr = np.zeros((MIDI_NOTE_RANGE, int(np.sum(rounded_time)) + 1))
@@ -147,6 +169,8 @@ def parse_midi_messages(filename):
                 time = rounded_time[msg_idx]
                 # get the note(pitch) and velocity information
                 note, velocity = msg_info.loc[['note', 'velocity']]
+                # normalize note, to C key, but make sure it doesn't go under/over MIDI range
+                note = max(min(note - key_offset, MIDI_NOTE_RANGE - 1), 0)
                 # make a new array of notes currently being played (MIDI_NOTE_RANGE x 1)
                 new_notes_on = np.copy(last_notes_on)
                 new_notes_on[note, 0] = velocity
@@ -161,7 +185,7 @@ def parse_midi_messages(filename):
             except Exception as e:
                 print('Error while generating NumPy representation!')
                 print(e)
-                pdb.set_trace()
+                exit(1)
 
         # fill the last columns of the array
         notes_arr[:, last_timestep:] = last_notes_on
@@ -176,7 +200,7 @@ def parse_midi_messages(filename):
 def main():
     if len(sys.argv) != 2:
         print('Usage: python read_midi.py midifilename')
-        exit(0)
+        exit(1)
 
     filename = sys.argv[1]
     arr_list = parse_midi_messages(filename)
