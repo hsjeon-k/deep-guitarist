@@ -17,7 +17,7 @@ def main():
         print(i)
         i += 1
         if filename.endswith(".mid"):
-            midi_to_txt(filename, dir=midi_dir, folder=txt_dir)
+            midi_to_txt(filename, input_dir=midi_dir, output_dir=txt_dir)
         else:
             continue
     
