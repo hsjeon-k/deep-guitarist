@@ -18,28 +18,19 @@ def np_to_txt(track: np.ndarray) -> str:
     assert row == NOTES_SIZE
     txt = ""
     for j in range(col):
-        cur_notes = np.around(track[:, j])
+        cur_notes = np.around(track[:, j]).astype(int)
 
         # filter out indices with nonzero velocity values from cur_notes 
-        indices = np.nonzero(cur_notes)[0][0]
+        indices = np.nonzero(cur_notes)[0]
         velos = cur_notes[indices]
-        print(indices.shape)
-        print(velos.shape)
-        # cur_notes_sz = indices.shape[0]
-
-        # velos = velos.reshape(1, cur_notes_sz)
-        # indices = indices.reshape(1, cur_notes_sz)
 
         # concatenate indices and velos into one array
-        int_arr = np.concatenate((indices, velos), axis=0).astype(int)
-        # assert index_velo_pairs.shape[1] == 2
-        # paired_chars = num_to_char(index_velo_pairs.flatten())
+        int_arr = np.concatenate((indices, velos))
 
         # convert int conca into string
         char_arr = num_to_char(int_arr)
-        txt.join(char_arr)
-        txt += " "
-    print("DONE!")
+        txt += "".join(char_arr)
+        txt += chr(NOTES_SIZE)
 
     return txt[:-1]
 
@@ -77,7 +68,6 @@ def main():
     if sys.argv[2] == '1':
         tracks = parse_midi_messages(filename)
         for i, track in enumerate(tracks):
-            print(type(track))
             if track is not None:
                 txt_list = np_to_txt(track)
                 txt_to_file(txt_list, filename, ind=i)
