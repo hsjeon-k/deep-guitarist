@@ -21,15 +21,17 @@ def np_to_txt(track: np.ndarray) -> str:
         cur_notes = np.around(track[:, j])
 
         # filter out indices with nonzero velocity values from cur_notes 
-        indices = np.nonzero(cur_notes)
+        indices = np.nonzero(cur_notes)[0][0]
         velos = cur_notes[indices]
+        print(indices.shape)
+        print(velos.shape)
         # cur_notes_sz = indices.shape[0]
 
         # velos = velos.reshape(1, cur_notes_sz)
         # indices = indices.reshape(1, cur_notes_sz)
 
         # concatenate indices and velos into one array
-        int_arr = np.concatenate(indices, velos, axis=0).astype(int)
+        int_arr = np.concatenate((indices, velos), axis=0).astype(int)
         # assert index_velo_pairs.shape[1] == 2
         # paired_chars = num_to_char(index_velo_pairs.flatten())
 
@@ -41,8 +43,8 @@ def np_to_txt(track: np.ndarray) -> str:
     return txt[:-1]
 
 
-def txt_to_file(txt: str, filename: str) -> None:
-    with open("{}.txt".format(filename), "w") as text_file:
+def txt_to_file(txt: str, filename: str, ind: int=-1) -> None:
+    with open("{}{}.txt".format(filename, "-"+str(ind) if ind > 0 else ""), "w") as text_file:
         text_file.write(txt)
 
 
@@ -73,8 +75,11 @@ def main():
     filename = sys.argv[1]
     if sys.argv[2] == '1':
         tracks = parse_midi_messages(filename)
-        txt_list = np_to_txt(tracks[0])
-        txt_to_file(txt_list, filename)
+        for i, track in enumerate(tracks):
+            print(type(track))
+            if track is not None:
+                txt_list = np_to_txt(track)
+                txt_to_file(txt_list, filename, ind=i)
     elif sys.argv[2] == '2':
         txt = file_to_txt(filename)
         arr = txt_to_np(txt)
