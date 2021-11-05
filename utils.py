@@ -2,7 +2,7 @@ import numpy as np
 import sys
 import os
 
-from read_midi import parse_midi_messages 
+from read_midi import parse_midi_messages, arr_to_midi
 
 # total number of notes per timestep
 NOTES_SIZE = 128
@@ -41,14 +41,18 @@ def np_to_str(track: np.ndarray) -> str:
 
 
 # coverts string input into a .txt file
-def str_to_file(txt: str, filename: str, folder: str=None, ind: int=-1) -> None:
+def str_to_file(txt: str, filename: str, folder: str=None, ind: int=-1) -> str:
     if folder is None:
-        with open("{}{}.txt".format(filename, "-"+str(ind) if ind > 0 else ""), "w") as text_file:
+        output_name = "{}{}.txt".format(filename, "-"+str(ind) if ind > 0 else "")
+        with open(output_name, "w") as text_file:
             text_file.write(txt)
     else:
         dir = os.path.join(folder, filename)
-        with open("{}{}.txt".format(dir, "-"+str(ind) if ind > 0 else ""), "w") as text_file:
+        output_name = "{}{}.txt".format(dir, "-"+str(ind) if ind > 0 else "")
+        with open(output_name, "w") as text_file:
             text_file.write(txt)
+    
+    return output_name
 
 
 # coverts .txt file into string
@@ -104,6 +108,19 @@ def main():
         arr = str_to_np(txt)
         print("result array has shape:", arr.shape)
         print("result array =\n", arr)
+        arr_to_midi(arr)
+    elif sys.argv[2] == '3':
+        tracks = parse_midi_messages(filename)
+        for track in tracks:
+            if track is not None:
+                arr1 = track
+        txt = np_to_str(arr1)
+        path = str_to_file(txt, filename)
+        txt = file_to_str(path)
+        arr2 = str_to_np(txt)
+        dif = arr1 - arr2
+        print(np.nonzero(dif))
+
     else:
         print("Invalid number: use 1 or 2")
         exit(0)
