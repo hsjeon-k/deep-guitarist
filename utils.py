@@ -1,5 +1,6 @@
 import numpy as np
 import sys
+import os
 
 from read_midi import parse_midi_messages 
 
@@ -8,6 +9,7 @@ NOTES_SIZE = 128
 
 def num_to_char(nums: np.ndarray) -> list:
     return [chr(num) for num in nums]
+
 
 def char_to_num(chars: list) -> np.ndarray:
     return np.array([ord(ch) for ch in chars])
@@ -35,9 +37,14 @@ def np_to_txt(track: np.ndarray) -> str:
     return txt[:-1]
 
 
-def txt_to_file(txt: str, filename: str, ind: int=-1) -> None:
-    with open("{}{}.txt".format(filename, "-"+str(ind) if ind > 0 else ""), "w") as text_file:
-        text_file.write(txt)
+def txt_to_file(txt: str, filename: str, folder: str=None, ind: int=-1) -> None:
+    if folder is None:
+        with open("{}{}.txt".format(filename, "-"+str(ind) if ind > 0 else ""), "w") as text_file:
+            text_file.write(txt)
+    else:
+        dir = os.path.join(folder, filename)
+        with open("{}{}.txt".format(dir, "-"+str(ind) if ind > 0 else ""), "w") as text_file:
+            text_file.write(txt)
 
 
 def file_to_txt(filename: str) -> str:
@@ -62,6 +69,14 @@ def txt_to_np(txt: str) -> np.ndarray:
     return result[:, 1:]
 
 
+def midi_to_txt(filename: str, dir: str="", folder: str=None):
+    tracks = parse_midi_messages(dir + "/" + filename)
+    for i, track in enumerate(tracks):
+        if track is not None:
+            txt_list = np_to_txt(track)
+            txt_to_file(txt_list, filename, ind=i, folder=folder)
+
+
 def main():
     if len(sys.argv) != 3:
         print('Usage: python np_to_txt.py midifilename number')
@@ -69,17 +84,15 @@ def main():
 
     filename = sys.argv[1]
     if sys.argv[2] == '1':
-        tracks = parse_midi_messages(filename)
-        for i, track in enumerate(tracks):
-            if track is not None:
-                txt_list = np_to_txt(track)
-                txt_to_file(txt_list, filename, ind=i)
+        midi_to_txt(filename)
     elif sys.argv[2] == '2':
         txt = file_to_txt(filename)
         arr = txt_to_np(txt)
         print("result array has shape:", arr.shape)
+        print("result array =\n", arr)
     else:
         print("Invalid number: use 1 or 2")
+        exit(0)
     
     
 if __name__ == '__main__':
