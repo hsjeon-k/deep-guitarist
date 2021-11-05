@@ -39,6 +39,7 @@ def np_to_txt(track: np.ndarray) -> str:
         char_arr = num_to_char(int_arr)
         txt.join(char_arr)
         txt += " "
+    print("DONE!")
 
     return txt[:-1]
 
