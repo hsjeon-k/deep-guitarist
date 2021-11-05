@@ -6,15 +6,17 @@ from read_midi import parse_midi_messages
 
 NOTES_SIZE = 128
 
-
+# converts numpy array of ints into list of corresponding unicode character
 def num_to_char(nums: np.ndarray) -> list:
     return [chr(num) for num in nums]
 
 
+# converts list of strings into nupy array of corresponding unicode ints
 def char_to_num(chars: list) -> np.ndarray:
     return np.array([ord(ch) for ch in chars])
 
 
+# converts numpy array of midi track into a single compressed string
 def np_to_txt(track: np.ndarray) -> str:
     row, col = track.shape
     assert row == NOTES_SIZE
@@ -37,6 +39,7 @@ def np_to_txt(track: np.ndarray) -> str:
     return txt[:-1]
 
 
+# coverts string input into a .txt file
 def txt_to_file(txt: str, filename: str, folder: str=None, ind: int=-1) -> None:
     if folder is None:
         with open("{}{}.txt".format(filename, "-"+str(ind) if ind > 0 else ""), "w") as text_file:
@@ -47,11 +50,13 @@ def txt_to_file(txt: str, filename: str, folder: str=None, ind: int=-1) -> None:
             text_file.write(txt)
 
 
+# coverts .txt file into a string
 def file_to_txt(filename: str) -> str:
     with open(filename, "r") as f:
         return f.read()
 
 
+# converts string input into a numpy array of midi track
 def txt_to_np(txt: str) -> np.ndarray:
     str_lst = txt.split(chr(NOTES_SIZE))
     result = np.zeros((NOTES_SIZE, 1))
@@ -69,6 +74,7 @@ def txt_to_np(txt: str) -> np.ndarray:
     return result[:, 1:]
 
 
+# converts for each track of given midi file into a compressed .txt file
 def midi_to_txt(filename: str, dir: str="", folder: str=None):
     tracks = parse_midi_messages(dir + "/" + filename)
     for i, track in enumerate(tracks):
