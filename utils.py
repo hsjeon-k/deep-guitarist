@@ -46,15 +46,18 @@ def file_to_txt(filename: str) -> str:
 
 
 def txt_to_np(txt: str) -> np.ndarray:
-    str_lst = txt.split()
+    str_lst = txt.split(chr(NOTES_SIZE))
     result = np.zeros((NOTES_SIZE, 1))
     for s in str_lst:
+        assert len(s) % 2 == 0
         half = len(s) // 2
         inds = char_to_num(s[:half])
         velos = char_to_num(s[half:])
-        cur_col = np.zeros((NOTES_SIZE, 1))
-        cur_col[inds] = velos
-        np.concatenate(result, cur_col, axis=1)
+        cur_col = np.zeros(NOTES_SIZE)
+        if inds.shape[0] > 0:
+            cur_col[inds] = velos
+        cur_col = cur_col.reshape(NOTES_SIZE, 1)
+        result = np.concatenate((result, cur_col), axis=1)
     
     return result[:, 1:]
 
