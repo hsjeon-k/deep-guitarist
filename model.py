@@ -30,7 +30,7 @@ class LSTM_model(object):
         _, in_timestep, _ = X_train.shape
         _, out_timestep, _ = Y_train.shape
 
-        #self.model.add(LSTM(256, input_shape=(in_timestep, 1)))
+        #self.model.add(LSTM(256, input_shape=(in_timestep, 1), return_sequences=True))
         self.model.add(LSTM(64, input_shape=(in_timestep, 1)))
         self.model.add(Dense(out_timestep))
         self.optimizer = Adam(learning_rate=learning_rate)
@@ -49,7 +49,7 @@ def main():
 
     dir_path = sys.argv[1]
 
-    dc = Dataset_conversion()
+    dc = Dataset_conversion(sep_by_type='char')
     X, Y = gather_data(dir_path, dc)
 
     num_examples, _, _ = X.shape

@@ -66,12 +66,12 @@ def str_to_np(txt: str) -> np.ndarray:
     str_lst = txt.split(chr(NOTES_SIZE))
     result = np.zeros((NOTES_SIZE, 1))
     for s in str_lst:
-        assert len(s) % 2 == 0
+        # assert len(s) % 2 == 0
         half = len(s) // 2
 
         # get array of note_on indices and velocities
         inds = char_to_num(s[:half])
-        velos = char_to_num(s[half:])
+        velos = char_to_num(s[half:2*half])
 
         # create current column of all notes (on and off) and append it to result array
         cur_col = np.zeros(NOTES_SIZE)
