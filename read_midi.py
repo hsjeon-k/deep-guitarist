@@ -28,27 +28,28 @@ KEY_OFFSETS = {'C' : 0, 'D' : 2, 'E' : 4,
                'F' : 5, 'G' : 7, 'A' : 9, 'B' : 11}
 
 
-def round_to_nearest_multiple(x, multiple_of):
+def round_to_nearest_multiple(x, multiple_of, return_type='int'):
     '''
     Function: round_to_nearest_multiple
 
     Input--
         x(float) : number to round
         multiple_of : integer to round x to the multiple of
+        return_type : the type of returned value (default int)
     Output--
         int : nearest multiple of multiple_of for x
 
     This function rounds a number to the nearest multiple of a given integer.
     Returns None if multiple_of == 0.
     '''
-    if multiple_of == 0:
+    if multiple_of == 0.0:
         return None
 
     floor = int(x / multiple_of)
     div_decimal = x / multiple_of - floor
     mult = floor if div_decimal < 0.5 else floor + 1
 
-    return multiple_of * mult
+    return int(multiple_of * mult) if return_type == 'int' else multiple_of * mult
 
 
 def parse_midi_messages(filename):
@@ -198,7 +199,7 @@ def parse_midi_messages(filename):
     return to_return
 
 
-def arr_to_midi(arr: np.ndarray) -> None:
+def arr_to_midi(arr: np.ndarray, filename: str=None) -> None:
     # initialize variables
     track = 0
     time = 0
@@ -243,7 +244,7 @@ def arr_to_midi(arr: np.ndarray) -> None:
             mf.addNote(track, channel, pitch, start_time, duration, int(prev_velo))
 
     # write to midi file
-    filename = "test.mid"
+    filename = "test.mid" if filename is None else filename
     with open(filename, "wb") as output:
         mf.writeFile(output)
     

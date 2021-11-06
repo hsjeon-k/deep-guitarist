@@ -84,8 +84,9 @@ def str_to_np(txt: str) -> np.ndarray:
 
 
 # converts for each track of given midi file into a compressed .txt file
-def midi_to_txt(filename: str, input_dir: str="", output_dir: str=None):
-    tracks = parse_midi_messages(input_dir + "/" + filename)
+def midi_to_txt(filename: str, input_dir: str=None, output_dir: str=None):
+    path_to_dir = '' if input_dir is None else input_dir + '/'
+    tracks = parse_midi_messages(path_to_dir + filename)
     for i, track in enumerate(tracks):
         if track is not None:
             txt_list = np_to_str(track)
@@ -95,9 +96,9 @@ def midi_to_txt(filename: str, input_dir: str="", output_dir: str=None):
                 str_to_file(txt_list, filename, folder=output_dir)
 
 
-def str_to_midi(txt: str):
+def str_to_midi(txt: str, filename: str=None):
     arr = str_to_np(txt)
-    return arr_to_midi(arr)
+    return arr_to_midi(arr, filename)
 
 
 def main():
