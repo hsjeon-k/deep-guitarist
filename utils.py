@@ -107,14 +107,17 @@ def main():
 
     filename = sys.argv[1]
     if sys.argv[2] == '1':
+        # test midi to txt conversion
         midi_to_txt(filename)
     elif sys.argv[2] == '2':
+        # test txt to midi conversion
         txt = file_to_str(filename)
         arr = str_to_np(txt)
         print("result array has shape:", arr.shape)
         print("result array =\n", arr)
         arr_to_midi(arr)
     elif sys.argv[2] == '3':
+        # test txt to np array converter and np array to txt converter
         tracks = parse_midi_messages(filename)
         for track in tracks:
             if track is not None:
