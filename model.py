@@ -7,7 +7,7 @@ from keras.layers import LSTM, Dense
 from tensorflow.keras.optimizers import Adam
 
 import utils
-from txt_to_dataset import Dataset_conversion
+from dataset_conversion import Dataset_conversion
 
 def gather_data(directory_path, dc):
     midifile_list = dc.get_files_by_ext(directory_path, '.mid')
