@@ -7,17 +7,11 @@ from keras.layers import LSTM, Dense
 from tensorflow.keras.optimizers import Adam
 
 import utils
-from dataset_conversion import Dataset_conversion
+from dataset_conversion import DatasetConversion
 
-def gather_data(directory_path, dc):
-    midifile_list = dc.get_files_by_ext(directory_path, '.mid')
+MIDI_EXTS = ['.mid', '.midi']
 
-    for midifile in midifile_list:
-        utils.midi_to_txt(midifile, input_dir=directory_path, output_dir=directory_path)
 
-    X, Y = dc.txt_to_dataset(directory_path, num_input=16, num_output=1)
-
-    return X, Y
 
 
 class LSTM_model(object):
@@ -49,8 +43,9 @@ def main():
 
     dir_path = sys.argv[1]
 
-    dc = Dataset_conversion(sep_by_type='char')
-    X, Y = gather_data(dir_path, dc)
+    dc = DatasetConversion(dir_path, sep_by_type='word')
+    dc.midi_to_txt()
+    X, Y = dc.txt_to_dataset(num_input=16, num_output=1)
 
     num_examples, _, _ = X.shape
     num_train_set = int(0.95*num_examples)
@@ -63,11 +58,11 @@ def main():
     Y_pred = generator.predict(X_test)
 
     # note that X_test is the last 5% of all EXAMPLES (possible combinations across all tracks), not all TRACKS
-    pred_output = dc.dataset_to_txt(Y_pred)
-    true_output = dc.dataset_to_txt(Y_test)
+    pred_output = dc.dataset_to_str(Y_pred)
+    true_output = dc.dataset_to_str(Y_test)
 
-    pred_file = utils.str_to_midi(pred_output, filename='pred_output.mid')
-    true_file = utils.str_to_midi(true_output, filename='true_output.mid')
+    pred_file = dc.str_to_midi(pred_output, filename='pred_output.mid')
+    true_file = dc.str_to_midi(true_output, filename='true_output.mid')
 
     print(pred_file)
     print(true_file)

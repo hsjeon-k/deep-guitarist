@@ -7,6 +7,24 @@ from read_midi import parse_midi_messages, arr_to_midi
 # total number of notes per timestep
 NOTES_SIZE = 128
 
+def get_files_by_ext(dir_path: str, exts: list) -> list:
+    '''
+    Static function: get_files_by_ext
+
+    Input--
+        dir_path (str) : path to the directory to be searched
+        ext (list(str)): list of file extensions to search for (e.g., ['.txt'])
+    Output--
+        list (str)     : list of filenames (e.g., 'abc.txt') in the directory with the specified extension(s)
+    '''
+    file_list = []
+    for filename in os.listdir(dir_path):
+        for ext in exts:
+            if filename.endswith(ext):
+                file_list.append(filename)
+
+    return file_list
+
 # converts numpy array of ints into list of corresponding unicode character
 def num_to_char(nums: np.ndarray) -> list:
     return [chr(num) for num in nums]
@@ -94,11 +112,6 @@ def midi_to_txt(filename: str, input_dir: str=None, output_dir: str=None):
                 str_to_file(txt_list, filename, ind=i, folder=output_dir)
             else:
                 str_to_file(txt_list, filename, folder=output_dir)
-
-
-def str_to_midi(txt: str, filename: str=None):
-    arr = str_to_np(txt)
-    return arr_to_midi(arr, filename)
 
 
 def main():
