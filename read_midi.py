@@ -214,11 +214,15 @@ def arr_to_midi(arr: np.ndarray) -> None:
     channel = 0
     row, col = arr.shape
     time_step = 1. / 4.
+
+    # loop through each pitch
     for i in range(row):
         start_time = 0
         duration = 0
         prev_velo = 0
         pitch = i
+
+        # loop through each time step of current pitch to add notes
         for j in range(col):
             cur_velo = arr[i, j]
             if cur_velo > 0:
@@ -239,8 +243,11 @@ def arr_to_midi(arr: np.ndarray) -> None:
             mf.addNote(track, channel, pitch, start_time, duration, int(prev_velo))
 
     # write to midi file
-    with open("test.mid", "wb") as output:
+    filename = "test.mid"
+    with open(filename, "wb") as output:
         mf.writeFile(output)
+    
+    return filename
 
 
 def main():

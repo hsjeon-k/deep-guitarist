@@ -12,8 +12,8 @@ def num_to_char(nums: np.ndarray) -> list:
     return [chr(num) for num in nums]
 
 
-# converts list of strings into nupy array of corresponding unicode ints
-def char_to_num(chars: list) -> np.ndarray:
+# converts a string into numpy array of corresponding unicode ints
+def char_to_num(chars: str) -> np.ndarray:
     return np.array([ord(ch) for ch in chars])
 
 
@@ -93,6 +93,11 @@ def midi_to_txt(filename: str, input_dir: str="", output_dir: str=None):
                 str_to_file(txt_list, filename, ind=i, folder=output_dir)
             else:
                 str_to_file(txt_list, filename, folder=output_dir)
+
+
+def str_to_midi(txt: str):
+    arr = str_to_np(txt)
+    return arr_to_midi(arr)
 
 
 def main():
