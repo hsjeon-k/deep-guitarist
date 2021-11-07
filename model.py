@@ -73,10 +73,10 @@ def main():
     Y_train = np.delete(Y, seed_idx, axis=0)
 
     generator = LSTMModel(in_size, out_size)
-    generator.train_model(X_train, Y_train, batch_size=32, epochs=3)
+    generator.train_model(X_train, Y_train, batch_size=32, epochs=10)
 
     # music generation!
-    gen_epoch = 100
+    gen_epoch = 64
     pred_result = ""
     # pattern will represent the last in_size 16th notes seen
     pattern = X_seed

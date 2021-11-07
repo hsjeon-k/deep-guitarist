@@ -68,6 +68,8 @@ class DatasetConversion(object):
 
         This function takes in a directory of .txt files and converts the data to a dataset format for LSTM.
         '''
+        window_step_size = 4
+
         num_input_size = DEFAULT_NUM_INPUT if num_input is None else num_input
         num_output_size = DEFAULT_NUM_OUTPUT if num_output is None else num_output
 
@@ -94,7 +96,7 @@ class DatasetConversion(object):
                     notes_split = list(data)
 
                 # for all possible continuous combinations of size total_size_per_feed:
-                for idx in range(len(notes_split) - total_size_per_feed  + 1):
+                for idx in range(len(0, (notes_split) - total_size_per_feed  + 1), window_step_size):
                     # take the first num_input_size data as input
                     input_x = notes_split[idx : idx + num_input_size]
                     # take the later num_output_size data as output
