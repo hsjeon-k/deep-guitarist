@@ -7,9 +7,10 @@ This file defines the LSTM model for music generation.
 
 ## import statements
 import sys
+import numpy as np
 
-from keras.models import Sequential
-from keras.layers import LSTM, Dense
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import LSTM, Dense
 from tensorflow.keras.optimizers import Adam
 
 from dataset_conversion import DatasetConversion
@@ -58,29 +59,47 @@ def main():
     dir_path = sys.argv[1]
 
     dc = DatasetConversion(dir_path, sep_by_type='word')
-    dc.midi_to_txt()
-    X, Y = dc.txt_to_dataset(num_input=16, num_output=1)
+    # dc.midi_to_txt()
+    X, Y = dc.txt_to_dataset(num_input=16, num_output=4)
 
     num_examples, in_size, _ = X.shape
     _, out_size, _ = Y.shape
-    num_train_set = int(0.95*num_examples)
-    X_train, X_test = X[:num_train_set], X[num_train_set:]
-    Y_train, Y_test = Y[:num_train_set], Y[num_train_set:]
+    # num_train_set = int(0.95*num_examples)
+    # X_train, X_test = X[:num_train_set], X[num_train_set:]
+    # Y_train, Y_test = Y[:num_train_set], Y[num_train_set:]
+
+
+    X_train, X_test = X[1:], X[:1]
+    Y_train, Y_test = Y[1:], Y[:1]
 
     generator = LSTMModel(in_size, out_size)
     generator.train_model(X_train, Y_train)
 
-    Y_pred = generator.predict(X_test)
+    # one-pass predictor
+    # Y_pred = generator.predict(X_test)
+
+    gen_epoch = 100
+    result = ""
+    pattern = X_test
+    for i in range(gen_epoch):
+        x = np.reshape(pattern, (1, len(pattern), 1))
+        pred = generator.predict(x)
+        pred_str = dc.dataset_to_str(pred)
+        np.concatenate((pattern, pred), axis=1)
+        pattern = pattern[:, 1:, :]
+        result += pred_str
 
     # note that X_test is the last 5% of all EXAMPLES (possible combinations across all tracks), not all TRACKS
-    pred_output = dc.dataset_to_str(Y_pred)
-    true_output = dc.dataset_to_str(Y_test)
+    # pred_output = dc.dataset_to_str(Y_pred)
+    # true_output = dc.dataset_to_str(Y_test)
 
-    pred_file = dc.str_to_midi(pred_output, filename='pred_output.mid')
-    true_file = dc.str_to_midi(true_output, filename='true_output.mid')
+    # pred_file = dc.str_to_midi(pred_output, filename='pred_output.mid')
+    # true_file = dc.str_to_midi(true_output, filename='true_output.mid')
 
-    print(pred_file)
-    print(true_file)
+    print(result)
+    
+    # print(pred_file)
+    # print(true_file)
 
 if __name__ == '__main__':
     main()
