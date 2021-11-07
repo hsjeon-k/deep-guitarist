@@ -1,42 +1,50 @@
-import sys
-import os
+'''
+File: model.py
+Usage: python3 model.py midi_directory_path
 
-import numpy as np
+This file defines the LSTM model for music generation.
+'''
+
+## import statements
+import sys
+
 from keras.models import Sequential
 from keras.layers import LSTM, Dense
 from tensorflow.keras.optimizers import Adam
 
-import utils
-from txt_to_dataset import Dataset_conversion
-
-def gather_data(directory_path, dc):
-    midifile_list = dc.get_files_by_ext(directory_path, '.mid')
-
-    for midifile in midifile_list:
-        utils.midi_to_txt(midifile, input_dir=directory_path, output_dir=directory_path)
-
-    X, Y = dc.txt_to_dataset(directory_path, num_input=16, num_output=1)
-
-    return X, Y
+from dataset_conversion import DatasetConversion
 
 
-class LSTM_model(object):
+## class definition
+class LSTMModel(object):
 
-    def __init__(self):
+    def __init__(self, in_size, out_size):
+        # define model
         self.model = Sequential()
+        #self.model.add(LSTM(256, input_shape=(in_size, 1), return_sequences=True))
+        self.model.add(LSTM(64, input_shape=(in_size, 1)))
+        self.model.add(Dense(out_size))
+
         self.optimizer = None
 
-    def train_model(self, X_train, Y_train, learning_rate=0.05):
-        _, in_timestep, _ = X_train.shape
-        _, out_timestep, _ = Y_train.shape
+    def train_model(self, X_train, Y_train, batch_size=32, epochs=10, learning_rate=0.05):
+        '''
+        Class function: train_model
 
-        #self.model.add(LSTM(256, input_shape=(in_timestep, 1)))
-        self.model.add(LSTM(64, input_shape=(in_timestep, 1)))
-        self.model.add(Dense(out_timestep))
-        self.optimizer = Adam(learning_rate=learning_rate)
+        Input--
+            X_train(np.ndarray) : shape (n_examples, input_size, 1); training set input
+            Y_train(np.ndarray) : shape (n_examples, output_size, 1); training set output
+            batch_size(int)     : batch size for training
+            epochs(int)         : number of epochs to train for
+            learning_rate(float): learning rate of the model
+        Output--
+            None
+
+        Defines and trains the model on the given training set
+        '''
+        self.optimizer = Adam(learning_rate=0.05)
         self.model.compile(loss='mean_squared_error', optimizer=self.optimizer)
-
-        self.model.fit(X_train, Y_train, batch_size=32, epochs=10, verbose=1)
+        self.model.fit(X_train, Y_train, batch_size=batch_size, epochs=epochs, verbose=1)
 
     def predict(self, X_test):
         return self.model.predict(X_test)
@@ -49,25 +57,27 @@ def main():
 
     dir_path = sys.argv[1]
 
-    dc = Dataset_conversion()
-    X, Y = gather_data(dir_path, dc)
+    dc = DatasetConversion(dir_path, sep_by_type='word')
+    dc.midi_to_txt()
+    X, Y = dc.txt_to_dataset(num_input=16, num_output=1)
 
-    num_examples, _, _ = X.shape
+    num_examples, in_size, _ = X.shape
+    _, out_size, _ = Y.shape
     num_train_set = int(0.95*num_examples)
     X_train, X_test = X[:num_train_set], X[num_train_set:]
     Y_train, Y_test = Y[:num_train_set], Y[num_train_set:]
 
-    generator = LSTM_model()
+    generator = LSTMModel(in_size, out_size)
     generator.train_model(X_train, Y_train)
 
     Y_pred = generator.predict(X_test)
 
     # note that X_test is the last 5% of all EXAMPLES (possible combinations across all tracks), not all TRACKS
-    pred_output = dc.dataset_to_txt(Y_pred)
-    true_output = dc.dataset_to_txt(Y_test)
+    pred_output = dc.dataset_to_str(Y_pred)
+    true_output = dc.dataset_to_str(Y_test)
 
-    pred_file = utils.str_to_midi(pred_output, filename='pred_output.mid')
-    true_file = utils.str_to_midi(true_output, filename='true_output.mid')
+    pred_file = dc.str_to_midi(pred_output, filename='pred_output.mid')
+    true_file = dc.str_to_midi(true_output, filename='true_output.mid')
 
     print(pred_file)
     print(true_file)
