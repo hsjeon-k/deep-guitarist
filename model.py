@@ -62,7 +62,7 @@ def main():
     dc = DatasetConversion(dir_path, sep_by_type='word')
     # comment out the line below if you already have MIDI files converted to text files
     # dc.midi_to_txt()
-    X, Y = dc.txt_to_dataset(num_input=16, num_output=4)
+    X, Y = dc.txt_to_dataset(num_input=64, num_output=16)
 
     num_examples, in_size, _ = X.shape
     _, out_size, _ = Y.shape
