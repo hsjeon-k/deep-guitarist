@@ -42,15 +42,10 @@ def np_to_str(track: np.ndarray) -> str:
 
 # coverts string input into a .txt file
 def str_to_file(txt: str, filename: str, folder: str=None, ind: int=-1) -> str:
-    if folder is None:
-        output_name = "{}{}.txt".format(filename, "-"+str(ind) if ind > 0 else "")
-        with open(output_name, "w") as text_file:
-            text_file.write(txt)
-    else:
-        dir = os.path.join(folder, filename)
-        output_name = "{}{}.txt".format(dir, "-"+str(ind) if ind > 0 else "")
-        with open(output_name, "w") as text_file:
-            text_file.write(txt)
+    dir = filename if  folder is None else os.path.join(folder, filename)
+    output_name = "{}{}.txt".format(dir, "-"+str(ind) if ind > 0 else "")
+    with open(output_name, "w") as text_file:
+        text_file.write(txt)
     
     return output_name
 
@@ -85,8 +80,8 @@ def str_to_np(txt: str) -> np.ndarray:
 
 # converts for each track of given midi file into a compressed .txt file
 def midi_to_txt(filename: str, input_dir: str=None, output_dir: str=None):
-    path_to_dir = '' if input_dir is None else input_dir + '/'
-    tracks = parse_midi_messages(path_to_dir + filename)
+    midi_path = os.path.join(input_dir, filename) if input_dir is not None else filename
+    tracks = parse_midi_messages(midi_path)
     for i, track in enumerate(tracks):
         if track is not None:
             txt_list = np_to_str(track)
@@ -96,6 +91,7 @@ def midi_to_txt(filename: str, input_dir: str=None, output_dir: str=None):
                 str_to_file(txt_list, filename, folder=output_dir)
 
 
+# converts a string into a midi_file
 def str_to_midi(txt: str, filename: str=None):
     arr = str_to_np(txt)
     return arr_to_midi(arr, filename)
@@ -108,14 +104,19 @@ def main():
 
     filename = sys.argv[1]
     if sys.argv[2] == '1':
+        # tests midi-to-text conversion
         midi_to_txt(filename)
+
     elif sys.argv[2] == '2':
+        # tests text-to-midi conversion
         txt = file_to_str(filename)
         arr = str_to_np(txt)
         print("result array has shape:", arr.shape)
         print("result array =\n", arr)
         arr_to_midi(arr)
+
     elif sys.argv[2] == '3':
+        # tests midi-to-text, then text-to-midi conversion using generated text files
         tracks = parse_midi_messages(filename)
         for track in tracks:
             if track is not None:
