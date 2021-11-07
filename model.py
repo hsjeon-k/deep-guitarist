@@ -10,7 +10,7 @@ import sys
 import numpy as np
 
 from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import LSTM, Dense
+from tensorflow.keras.layers import LSTM, Dropout, Dense
 from tensorflow.keras.optimizers import Adam
 
 from dataset_conversion import DatasetConversion
@@ -22,7 +22,8 @@ class LSTMModel(object):
     def __init__(self, in_size, out_size):
         # define model
         self.model = Sequential()
-        #self.model.add(LSTM(256, input_shape=(in_size, 1), return_sequences=True))
+        self.model.add(LSTM(256, input_shape=(in_size, 1), return_sequences=True))
+        self.model.add(Dropout(0.3))
         self.model.add(LSTM(64, input_shape=(in_size, 1)))
         self.model.add(Dense(out_size))
 
@@ -47,8 +48,8 @@ class LSTMModel(object):
         self.model.compile(loss='mean_squared_error', optimizer=self.optimizer)
         self.model.fit(X_train, Y_train, batch_size=batch_size, epochs=epochs, verbose=1)
 
-    def predict(self, X_test):
-        return self.model.predict(X_test)
+    def predict(self, X_seed):
+        return self.model.predict(X_seed)
 
 
 def main():
@@ -68,38 +69,34 @@ def main():
     # X_train, X_test = X[:num_train_set], X[num_train_set:]
     # Y_train, Y_test = Y[:num_train_set], Y[num_train_set:]
 
-
-    X_train, X_test = X[1:], X[:1]
-    Y_train, Y_test = Y[1:], Y[:1]
+    seed_idx = np.random.randint(num_examples)
+    X_train, X_seed = np.delete(X, seed_idx, axis=0), X[seed_idx, :, :]
+    Y_train = np.delete(Y, seed_idx, axis=0)
 
     generator = LSTMModel(in_size, out_size)
-    generator.train_model(X_train, Y_train)
+    generator.train_model(X_train, Y_train, batch_size=512, epochs=10)
 
     # one-pass predictor
     # Y_pred = generator.predict(X_test)
 
     gen_epoch = 100
-    result = ""
-    pattern = X_test
+    pred_result = ""
+    pattern = X_seed
     for i in range(gen_epoch):
-        x = np.reshape(pattern, (1, len(pattern), 1))
-        pred = generator.predict(x)
+        x = np.reshape(pattern, (1, in_size, 1))
+        pred = generator.predict(x).reshape(1, out_size, 1)
         pred_str = dc.dataset_to_str(pred)
-        np.concatenate((pattern, pred), axis=1)
-        pattern = pattern[:, 1:, :]
-        result += pred_str
+        pattern = np.concatenate((x, pred), axis=1)
+        pattern = pattern[:, out_size:, :]
+        pred_result += pred_str
 
     # note that X_test is the last 5% of all EXAMPLES (possible combinations across all tracks), not all TRACKS
     # pred_output = dc.dataset_to_str(Y_pred)
     # true_output = dc.dataset_to_str(Y_test)
 
-    # pred_file = dc.str_to_midi(pred_output, filename='pred_output.mid')
-    # true_file = dc.str_to_midi(true_output, filename='true_output.mid')
+    pred_file = dc.str_to_midi(pred_result, filename='pred_output.mid')
 
-    print(result)
-    
-    # print(pred_file)
-    # print(true_file)
+    print(pred_file)
 
 if __name__ == '__main__':
     main()
