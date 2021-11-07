@@ -104,12 +104,12 @@ class DatasetConversion(object):
                     outputs.append(output_y)
 
         # flatten lists and join, to compute the set of vocabulary
-        possible_X = [comb for input_x in inputs for comb in input_x]
-        possible_Y = [comb for output_y in outputs for comb in output_y]
-        possible_all = possible_X + possible_Y
+        possible_X = set([comb for input_x in inputs for comb in input_x])
+        possible_Y = set([comb for output_y in outputs for comb in output_y])
+        possible_all = possible_X.union(possible_Y)
         # sort so that similar vocabulary are nearby
         # (e.g., if reading by word, two combinations may both start with char equivalent to 'C')
-        possible_all = sorted(list(set(possible_all)))
+        possible_all = sorted(list(possible_all))
         # assign index to each
         self.data_to_int = dict([(comb, i) for i, comb in enumerate(possible_all)])
         self.int_to_data = dict([(i, comb) for i, comb in enumerate(possible_all)])
