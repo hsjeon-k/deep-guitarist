@@ -62,7 +62,7 @@ def main():
     dc = DatasetConversion(dir_path, sep_by_type='word')
     # comment out the line below if you already have MIDI files converted to text files
     # dc.midi_to_txt()
-    X, Y = dc.txt_to_dataset(num_input=64, num_output=16)
+    X, Y = dc.txt_to_dataset(num_input=32, num_output=16)
 
     num_examples, in_size, _ = X.shape
     _, out_size, _ = Y.shape
@@ -73,7 +73,7 @@ def main():
     Y_train = np.delete(Y, seed_idx, axis=0)
 
     generator = LSTMModel(in_size, out_size)
-    generator.train_model(X_train, Y_train, batch_size=32, epochs=10)
+    generator.train_model(X_train, Y_train, batch_size=32, epochs=4)
 
     # music generation!
     gen_epoch = 64
