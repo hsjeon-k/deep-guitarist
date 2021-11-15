@@ -68,6 +68,8 @@ class DatasetConversion(object):
 
         This function takes in a directory of .txt files and converts the data to a dataset format for LSTM.
         '''
+        window_step_size = 8
+
         num_input_size = DEFAULT_NUM_INPUT if num_input is None else num_input
         num_output_size = DEFAULT_NUM_OUTPUT if num_output is None else num_output
 
@@ -94,7 +96,7 @@ class DatasetConversion(object):
                     notes_split = list(data)
 
                 # for all possible continuous combinations of size total_size_per_feed:
-                for idx in range(len(notes_split) - total_size_per_feed  + 1):
+                for idx in range(0, len(notes_split) - total_size_per_feed  + 1, window_step_size):
                     # take the first num_input_size data as input
                     input_x = notes_split[idx : idx + num_input_size]
                     # take the later num_output_size data as output
@@ -104,12 +106,12 @@ class DatasetConversion(object):
                     outputs.append(output_y)
 
         # flatten lists and join, to compute the set of vocabulary
-        possible_X = set([comb for input_x in inputs for comb in input_x])
-        possible_Y = set([comb for output_y in outputs for comb in output_y])
-        possible_all = possible_X.union(possible_Y)
+        possible_X = [comb for input_x in inputs for comb in input_x]
+        possible_Y = [comb for output_y in outputs for comb in output_y]
+        possible_all = possible_X + possible_Y
         # sort so that similar vocabulary are nearby
         # (e.g., if reading by word, two combinations may both start with char equivalent to 'C')
-        possible_all = sorted(list(possible_all))
+        possible_all = sorted(list(set(possible_all)))
         # assign index to each
         self.data_to_int = dict([(comb, i) for i, comb in enumerate(possible_all)])
         self.int_to_data = dict([(i, comb) for i, comb in enumerate(possible_all)])

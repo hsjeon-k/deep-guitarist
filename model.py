@@ -13,7 +13,9 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import LSTM, Dropout, Dense
 from tensorflow.keras.optimizers import Adam
 
-from dataset_conversion import DatasetConversion
+# from dataset_conversion import DatasetConversion
+from dataset_conversion_new import DatasetConversion
+
 
 
 ## class definition
@@ -22,8 +24,8 @@ class LSTMModel(object):
     def __init__(self, in_size, out_size):
         # define model
         self.model = Sequential()
-        self.model.add(LSTM(256, input_shape=(in_size, 1), return_sequences=True))
-        self.model.add(Dropout(0.3))
+        #self.model.add(LSTM(256, input_shape=(in_size, 1), return_sequences=True))
+        #self.model.add(Dropout(0.3))
         self.model.add(LSTM(64, input_shape=(in_size, 1)))
         self.model.add(Dense(out_size))
 
@@ -44,7 +46,7 @@ class LSTMModel(object):
 
         Defines and trains the model on the given training set
         '''
-        self.optimizer = Adam(learning_rate=0.05)
+        self.optimizer = Adam(learning_rate=learning_rate)
         self.model.compile(loss='mean_squared_error', optimizer=self.optimizer)
         self.model.fit(X_train, Y_train, batch_size=batch_size, epochs=epochs, verbose=1)
 
@@ -60,43 +62,44 @@ def main():
     dir_path = sys.argv[1]
 
     dc = DatasetConversion(dir_path, sep_by_type='word')
+    # comment out the line below if you already have MIDI files converted to text files
     # dc.midi_to_txt()
-    X, Y = dc.txt_to_dataset(num_input=16, num_output=4)
+
+    input_window_size = 4
+    output_window_size = 1
+    X, Y = dc.txt_to_dataset(input_window_size=input_window_size, output_window_size=output_window_size)
 
     num_examples, in_size, _ = X.shape
     _, out_size, _ = Y.shape
-    # num_train_set = int(0.95*num_examples)
-    # X_train, X_test = X[:num_train_set], X[num_train_set:]
-    # Y_train, Y_test = Y[:num_train_set], Y[num_train_set:]
 
+    # set a random example as the seed input for music generation later
     seed_idx = np.random.randint(num_examples)
     X_train, X_seed = np.delete(X, seed_idx, axis=0), X[seed_idx, :, :]
     Y_train = np.delete(Y, seed_idx, axis=0)
 
     generator = LSTMModel(in_size, out_size)
-    generator.train_model(X_train, Y_train, batch_size=512, epochs=10)
+    generator.train_model(X_train, Y_train, batch_size=32, epochs=4)
 
-    # one-pass predictor
-    # Y_pred = generator.predict(X_test)
-
-    gen_epoch = 100
+    # music generation!
+    gen_epoch = 64
     pred_result = ""
+    # pattern will represent the last in_size 16th notes seen
     pattern = X_seed
     for i in range(gen_epoch):
         x = np.reshape(pattern, (1, in_size, 1))
+        # predict the next out_size 16th notes from the pattern
         pred = generator.predict(x).reshape(1, out_size, 1)
+        # convert to string representation
         pred_str = dc.dataset_to_str(pred)
+        # append the new output, and remove the equivalent amount of input from the start for the next prediction
         pattern = np.concatenate((x, pred), axis=1)
         pattern = pattern[:, out_size:, :]
-        pred_result += pred_str
 
-    # note that X_test is the last 5% of all EXAMPLES (possible combinations across all tracks), not all TRACKS
-    # pred_output = dc.dataset_to_str(Y_pred)
-    # true_output = dc.dataset_to_str(Y_test)
+        pred_result += pred_str
 
     pred_file = dc.str_to_midi(pred_result, filename='pred_output.mid')
 
-    print(pred_file)
+    print('The generated music is at: {}'.format(pred_file))
 
 if __name__ == '__main__':
     main()
