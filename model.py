@@ -13,7 +13,9 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import LSTM, Dropout, Dense
 from tensorflow.keras.optimizers import Adam
 
-from dataset_conversion import DatasetConversion
+# from dataset_conversion import DatasetConversion
+from dataset_conversion_new import DatasetConversion
+
 
 
 ## class definition
@@ -44,7 +46,7 @@ class LSTMModel(object):
 
         Defines and trains the model on the given training set
         '''
-        self.optimizer = Adam(learning_rate=0.05)
+        self.optimizer = Adam(learning_rate=learning_rate)
         self.model.compile(loss='mean_squared_error', optimizer=self.optimizer)
         self.model.fit(X_train, Y_train, batch_size=batch_size, epochs=epochs, verbose=1)
 
@@ -62,7 +64,10 @@ def main():
     dc = DatasetConversion(dir_path, sep_by_type='word')
     # comment out the line below if you already have MIDI files converted to text files
     # dc.midi_to_txt()
-    X, Y = dc.txt_to_dataset(num_input=32, num_output=16)
+
+    input_window_size = 4
+    output_window_size = 1
+    X, Y = dc.txt_to_dataset(input_window_size=input_window_size, output_window_size=output_window_size)
 
     num_examples, in_size, _ = X.shape
     _, out_size, _ = Y.shape
