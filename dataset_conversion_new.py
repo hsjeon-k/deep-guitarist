@@ -69,8 +69,8 @@ class DatasetConversion(object):
 
         This function takes in a directory of .txt files and converts the data to a dataset format for LSTM.
         '''
-        num_input_size = DEFAULT_NUM_INPUT if input_window_size is None else num_input
-        num_output_size = DEFAULT_NUM_OUTPUT if input_window_size is None else num_output
+        num_input_size = DEFAULT_NUM_INPUT if input_window_size is None else input_window_size
+        num_output_size = DEFAULT_NUM_OUTPUT if input_window_size is None else output_window_size
 
         # generates a list of all text files in the directory
         txtfile_list = utils.get_files_by_ext(self.dir_path, TXT_EXTS)

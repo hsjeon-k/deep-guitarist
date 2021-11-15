@@ -15,6 +15,7 @@ from tensorflow.keras.optimizers import Adam
 
 # from dataset_conversion import DatasetConversion
 from dataset_conversion_new import DatasetConversion
+from read_midi import arr_to_midi
 
 
 
@@ -82,22 +83,25 @@ def main():
 
     # music generation!
     gen_epoch = 64
-    pred_result = ""
+    pred_result = np.zeros((128, 1))
     # pattern will represent the last in_size 16th notes seen
     pattern = X_seed
     for i in range(gen_epoch):
-        x = np.reshape(pattern, (1, in_size, 1))
+        # x = np.reshape(pattern, (1, in_size, 1))
         # predict the next out_size 16th notes from the pattern
-        pred = generator.predict(x).reshape(1, out_size, 1)
+        # pred = generator.predict(x).reshape(1, out_size, 1)
+        pred = generator.predict(pattern).reshape(1, out_size, 1)
+
         # convert to string representation
-        pred_str = dc.dataset_to_str(pred)
+        # pred_str = dc.dataset_to_str(pred)
         # append the new output, and remove the equivalent amount of input from the start for the next prediction
-        pattern = np.concatenate((x, pred), axis=1)
+        pattern = np.concatenate((pattern, pred), axis=1)
         pattern = pattern[:, out_size:, :]
 
-        pred_result += pred_str
+        pred_result = np.concatenate((pred_result, pred), axis=1)
 
-    pred_file = dc.str_to_midi(pred_result, filename='pred_output.mid')
+    # pred_file = dc.str_to_midi(pred_result, filename='pred_output.mid')
+    pred_file = arr_to_midi(pred_result, filename='pred_output.mid')
 
     print('The generated music is at: {}'.format(pred_file))
 
