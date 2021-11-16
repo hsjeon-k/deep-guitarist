@@ -79,35 +79,35 @@ class DatasetConversion(object):
         total_size_per_feed = num_input_size + num_output_size
 
         # initialize
-        X = None
-        Y = None
+        X = np.zeros((1, 128, num_input_size))
+        Y = np.zeros((1, 128, num_output_size))
 
         for file in txtfile_list:
             # get the total path
             filepath = os.path.join(self.dir_path, file)
+            print(filepath)
             with open(filepath, 'r') as in_f:
                 data = in_f.read().strip('\n')
                 dataset = utils.str_to_np(data)
 
-                for idx in range(0, dataset.shape[1] - total_size_per_feed + 1, step):
+                num_examples = (dataset.shape[1] - total_size_per_feed) // step
+
+                file_example_start_idx = X.shape[0]
+                X = np.concatenate((X, np.zeros((num_examples, dataset.shape[0], num_input_size))), axis=0)
+                Y = np.concatenate((Y, np.zeros((num_examples, dataset.shape[0], num_output_size))), axis=0)
+
+                for idx in range(num_examples):
                     # take the first num_input_size data as input
-                    input_x = dataset[:, idx : idx + num_input_size]\
+                    input_x = dataset[:, idx*step : idx*step + num_input_size]\
                               .reshape(1, dataset.shape[0], num_input_size)
                     # take the later num_output_size data as output
-                    output_y = dataset[:, idx + num_input_size : idx + total_size_per_feed]\
+                    output_y = dataset[:, idx*step + num_input_size : idx*step + total_size_per_feed]\
                               .reshape(1, dataset.shape[0], num_output_size)
 
-                    if X is None:
-                        X = input_x
-                    else:
-                        np.concatenate((X, input_x), axis=0)
+                    X[file_example_start_idx + idx] = input_x
+                    Y[file_example_start_idx + idx] = output_y
 
-                    if Y is None:
-                        Y = output_y
-                    else:
-                        np.concatenate((Y, output_y), axis=0)
-
-        return X, Y
+        return X[1:], Y[1:]
 
     def dataset_to_str(self, Y):
         '''
