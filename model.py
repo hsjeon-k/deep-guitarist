@@ -66,19 +66,19 @@ def main():
     # comment out the line below if you already have MIDI files converted to text files
     # dc.midi_to_txt()
 
-    input_window_size = 4
+    input_window_size = 2
     output_window_size = 1
-    X, Y = dc.txt_to_dataset(input_window_size=input_window_size, output_window_size=output_window_size)
+    step = 4
+    X, Y = dc.txt_to_dataset(input_window_size=input_window_size, output_window_size=output_window_size, step=step)
 
-    num_examples, in_size, input_window_size = X.shape
-    _, out_size, _ = Y.shape
+    num_examples = X.shape[0]
 
     # set a random example as the seed input for music generation later
     seed_idx = np.random.randint(num_examples)
     X_train, X_seed = np.delete(X, seed_idx, axis=0), X[seed_idx, :, :]
     Y_train = np.delete(Y, seed_idx, axis=0)
 
-    generator = LSTMModel(input_window_size, out_size)
+    generator = LSTMModel(input_window_size, output_window_size)
     generator.train_model(X_train, Y_train, batch_size=32, epochs=4)
 
     # music generation!
