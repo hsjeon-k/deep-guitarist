@@ -27,7 +27,7 @@ class LSTMModel(object):
         self.model = Sequential()
         #self.model.add(LSTM(256, input_shape=(in_size, 1), return_sequences=True))
         #self.model.add(Dropout(0.3))
-        self.model.add(LSTM(64, input_shape=(in_size, 1)))
+        self.model.add(LSTM(64, input_shape=(128, in_size)))
         self.model.add(Dense(out_size))
 
         self.optimizer = None
@@ -70,7 +70,7 @@ def main():
     output_window_size = 1
     X, Y = dc.txt_to_dataset(input_window_size=input_window_size, output_window_size=output_window_size)
 
-    num_examples, in_size, _ = X.shape
+    num_examples, in_size, input_window_size = X.shape
     _, out_size, _ = Y.shape
 
     # set a random example as the seed input for music generation later
@@ -78,7 +78,7 @@ def main():
     X_train, X_seed = np.delete(X, seed_idx, axis=0), X[seed_idx, :, :]
     Y_train = np.delete(Y, seed_idx, axis=0)
 
-    generator = LSTMModel(in_size, out_size)
+    generator = LSTMModel(input_window_size, out_size)
     generator.train_model(X_train, Y_train, batch_size=32, epochs=4)
 
     # music generation!
