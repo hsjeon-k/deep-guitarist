@@ -118,7 +118,7 @@ class DatasetConversion(object):
 
                 file_example_start_idx += num_examples
 
-        return X[1:], Y[1:]
+        return X[:file_example_start_idx], Y[:file_example_start_idx]
 
     def dataset_to_str(self, Y):
         '''
