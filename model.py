@@ -27,6 +27,8 @@ class LSTMModel(object):
         self.model = Sequential()
         #self.model.add(LSTM(256, input_shape=(in_size, 1), return_sequences=True))
         #self.model.add(Dropout(0.3))
+        self.model.add(LSTM(256, input_shape=(128, in_size), return_sequences=True))
+        self.model.add(Dropout(0.3))
         self.model.add(LSTM(64, input_shape=(128, in_size)))
         self.model.add(Dense(out_size))
 
@@ -66,7 +68,7 @@ def main():
     # comment out the line below if you already have MIDI files converted to text files
     # dc.midi_to_txt()
 
-    input_window_size = 2
+    input_window_size = 1
     output_window_size = 1
     step = 4
     X, Y = dc.txt_to_dataset(input_window_size=input_window_size, output_window_size=output_window_size, step=step)
@@ -79,7 +81,7 @@ def main():
     Y_train = np.delete(Y, seed_idx, axis=0)
 
     generator = LSTMModel(input_window_size, output_window_size)
-    generator.train_model(X_train, Y_train, batch_size=32, epochs=4)
+    generator.train_model(X_train, Y_train, batch_size=1024, epochs=4)
 
     # music generation!
     gen_epoch = 64
