@@ -73,34 +73,38 @@ def main():
     step = 4
     X, Y = dc.txt_to_dataset(input_window_size=input_window_size, output_window_size=output_window_size, step=step)
 
-    num_examples = X.shape[0]
+    num_examples, val1, val2 = X.shape
+
+    print('val1:', val1)
+    print('val2:', val2)
 
     # set a random example as the seed input for music generation later
     seed_idx = np.random.randint(num_examples)
     X_train, X_seed = np.delete(X, seed_idx, axis=0), X[seed_idx]
     Y_train = np.delete(Y, seed_idx, axis=0)
 
-    generator = LSTMModel(input_window_size, output_window_size)
-    generator.train_model(X_train, Y_train, batch_size=1024, epochs=4)
+    output_size = 128
+    generator = LSTMModel(input_window_size, output_size)
+    generator.train_model(X_train, Y_train, batch_size=1024, epochs=2)
 
     # music generation!
     gen_epoch = 64
     pred_result = np.zeros((128, 1))
     # pattern will represent the last in_size 16th notes seen
     pattern = X_seed
+    out_size = 1
     for i in range(gen_epoch):
         # x = np.reshape(pattern, (1, in_size, 1))
         # predict the next out_size 16th notes from the pattern
         # pred = generator.predict(x).reshape(1, out_size, 1)
-        pred = generator.predict(pattern).reshape(1, out_size, 1)
+        pred = generator.predict(pattern).reshape(1, output_size, output_window_size)
 
         # convert to string representation
         # pred_str = dc.dataset_to_str(pred)
         # append the new output, and remove the equivalent amount of input from the start for the next prediction
-        pattern = np.concatenate((pattern, pred), axis=1)
-        pattern = pattern[:, out_size:, :]
-
-        pred_result = np.concatenate((pred_result, pred), axis=1)
+        pattern = np.concatenate((pattern, pred), axis=2)
+        pattern = pattern[:, :, output_window_size:]
+        pred_result = np.concatenate((pred_result, pred), axis=2)
 
     # pred_file = dc.str_to_midi(pred_result, filename='pred_output.mid')
     pred_file = arr_to_midi(pred_result, filename='pred_output.mid')
