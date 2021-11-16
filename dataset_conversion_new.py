@@ -107,7 +107,7 @@ class DatasetConversion(object):
                     # take the later num_output_size data as output
                     output_y = dataset[:, idx*step + num_input_size : idx*step + total_size_per_feed]\
                               .reshape(1, dataset.shape[0], num_output_size)
-                    
+
                     if file_example_start_idx + idx >= X.shape[0]:
                         X = np.concatenate((X, np.zeros((extend_sz, 128, num_input_size))))
                         Y = np.concatenate((Y, np.zeros((extend_sz, 128, num_output_size))))

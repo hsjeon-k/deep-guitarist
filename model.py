@@ -77,7 +77,7 @@ def main():
 
     # set a random example as the seed input for music generation later
     seed_idx = np.random.randint(num_examples)
-    X_train, X_seed = np.delete(X, seed_idx, axis=0), X[seed_idx, :, :]
+    X_train, X_seed = np.delete(X, seed_idx, axis=0), X[seed_idx]
     Y_train = np.delete(Y, seed_idx, axis=0)
 
     generator = LSTMModel(input_window_size, output_window_size)
