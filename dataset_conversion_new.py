@@ -84,8 +84,10 @@ class DatasetConversion(object):
         X = np.zeros((extend_sz, 128, num_input_size))
         Y = np.zeros((extend_sz, 128, num_output_size))
         file_example_start_idx = 0
-        for file in txtfile_list:
+        for file_cnt, file in enumerate(txtfile_list):
             # get the total path
+            print(file_cnt)
+
             filepath = os.path.join(self.dir_path, file)
             print(filepath)
             with open(filepath, 'r') as in_f:
