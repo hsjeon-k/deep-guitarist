@@ -82,8 +82,9 @@ def file_to_str(filename: str) -> str:
 # converts string input into a numpy array of midi track
 def str_to_np(txt: str) -> np.ndarray:
     str_lst = txt.split(chr(NOTES_SIZE))
-    result = np.zeros((NOTES_SIZE, 1))
-    for s in str_lst:
+    lst_sz = len(str_lst)
+    result = np.zeros((NOTES_SIZE, lst_sz))
+    for i, s in enumerate(str_lst):
         # assert len(s) % 2 == 0
         half = len(s) // 2
 
@@ -96,9 +97,11 @@ def str_to_np(txt: str) -> np.ndarray:
         if inds.shape[0] > 0:
             cur_col[inds] = velos
         cur_col = cur_col.reshape(NOTES_SIZE, 1)
-        result = np.concatenate((result, cur_col), axis=1)
+
+        # result = np.concatenate((result, cur_col), axis=1)
+        result[i] = cur_col
     
-    return result[:, 1:]
+    return result
 
 
 # converts for each track of given midi file into a compressed .txt file
@@ -142,6 +145,10 @@ def main():
         arr2 = str_to_np(txt)
         dif = arr1 - arr2
         print(np.nonzero(dif))
+    elif sys.argv[2] == '4':
+        # test txt to npy file
+
+        pass
 
     else:
         print("Invalid number: use 1 or 2")
