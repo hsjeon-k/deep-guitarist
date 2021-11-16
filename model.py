@@ -30,7 +30,8 @@ class LSTMModel(object):
         self.model.add(LSTM(256, input_shape=(128, in_size), return_sequences=True))
         self.model.add(Dropout(0.3))
         self.model.add(LSTM(64, input_shape=(128, in_size)))
-        self.model.add(Dense(out_size))
+        self.model.add(Dropout(0.4))
+        self.model.add(Dense(out_size, activation='softmax'))
 
         self.optimizer = None
 
@@ -55,7 +56,7 @@ class LSTMModel(object):
 
     def predict(self, X_seed):
         return self.model.predict(X_seed)
-
+import pdb
 
 def main():
     if len(sys.argv) != 2:
@@ -68,28 +69,27 @@ def main():
     # comment out the line below if you already have MIDI files converted to text files
     # dc.midi_to_txt()
 
-    input_window_size = 1
+    input_window_size = 4
     output_window_size = 1
-    step = 4
+    step = 8
     X, Y = dc.txt_to_dataset(input_window_size=input_window_size, output_window_size=output_window_size, step=step)
 
-    num_examples, val1, val2 = X.shape
+    # X = X[:, 32:96, :]
+    # Y = Y[:, 32:96, :]
 
-    print('val1:', val1)
-    print('val2:', val2)
+    num_examples, output_size = X.shape[0], X.shape[1]
 
     # set a random example as the seed input for music generation later
     seed_idx = np.random.randint(num_examples)
-    X_train, X_seed = np.delete(X, seed_idx, axis=0), X[seed_idx]
+    X_train, X_seed = np.delete(X, seed_idx, axis=0), X[seed_idx, :, :]
     Y_train = np.delete(Y, seed_idx, axis=0)
 
-    output_size = 128
     generator = LSTMModel(input_window_size, output_size)
-    generator.train_model(X_train, Y_train, batch_size=1024, epochs=2)
+    generator.train_model(X_train, Y_train, batch_size=512, epochs=1)
 
     # music generation!
     gen_epoch = 64
-    pred_result = np.zeros((128, 1))
+    pred_result = np.zeros((output_size, output_window_size))
     # pattern will represent the last in_size 16th notes seen
     pattern = X_seed
     out_size = 1
@@ -97,17 +97,21 @@ def main():
         # x = np.reshape(pattern, (1, in_size, 1))
         # predict the next out_size 16th notes from the pattern
         # pred = generator.predict(x).reshape(1, out_size, 1)
-        pred = generator.predict(pattern).reshape(1, output_size, output_window_size)
-
+        pred = generator.predict(pattern.reshape(1, output_size, input_window_size)).reshape(output_size, output_window_size)
+        pred = np.floor(pred * 128)
+        pdb.set_trace()
         # convert to string representation
         # pred_str = dc.dataset_to_str(pred)
         # append the new output, and remove the equivalent amount of input from the start for the next prediction
-        pattern = np.concatenate((pattern, pred), axis=2)
-        pattern = pattern[:, :, output_window_size:]
-        pred_result = np.concatenate((pred_result, pred), axis=2)
+        pattern = np.concatenate((pattern, pred), axis=1)
+        pattern = pattern[:, output_window_size:]
+        pred_result = np.concatenate((pred_result, pred), axis=1)
+
+    print(pred_result)
+    pdb.set_trace()
 
     # pred_file = dc.str_to_midi(pred_result, filename='pred_output.mid')
-    pred_file = arr_to_midi(pred_result, filename='pred_output.mid')
+    pred_file = arr_to_midi(pred_result.astype(int), filename='pred_output.mid')
 
     print('The generated music is at: {}'.format(pred_file))
 

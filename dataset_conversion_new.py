@@ -86,13 +86,13 @@ class DatasetConversion(object):
         file_example_start_idx = 0
         for file_cnt, file in enumerate(txtfile_list):
             # get the total path
-            print(file_cnt)
+            # print(file_cnt)
 
             filepath = os.path.join(self.dir_path, file)
             # print(filepath)
             with open(filepath, 'r', encoding='utf-8') as in_f:
                 data = in_f.read()
-                dataset = utils.str_to_np(data)
+                dataset = utils.str_to_np(data) / 128.0
 
                 num_examples = (dataset.shape[1] - total_size_per_feed) // step
 
