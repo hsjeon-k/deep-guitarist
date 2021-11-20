@@ -90,15 +90,13 @@ def str_to_np(txt: str) -> np.ndarray:
 
         # get array of note_on indices and velocities
         inds = char_to_num(s[:half])
-        # velos = char_to_num(s[half:2*half])
+        # velos = char_to_num(s[half:2 * half])
 
         # create current column of all notes (on and off) and append it to result array
         cur_col = np.zeros(NOTES_SIZE)
         if inds.shape[0] > 0:
             cur_col[inds] = 1.0
-        # cur_col = cur_col.reshape(NOTES_SIZE, 1)
 
-        # result = np.concatenate((result, cur_col), axis=1)
         result[:, i] = cur_col
     
     return result
