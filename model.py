@@ -17,8 +17,6 @@ from tensorflow.keras.optimizers import Adam
 from dataset_conversion_new import DatasetConversion
 from read_midi import arr_to_midi
 
-
-
 ## class definition
 class LSTMModel(object):
 
@@ -27,10 +25,10 @@ class LSTMModel(object):
         self.model = Sequential()
         #self.model.add(LSTM(256, input_shape=(in_size, 1), return_sequences=True))
         #self.model.add(Dropout(0.3))
-        self.model.add(LSTM(256, input_shape=(128, in_size), return_sequences=True))
-        self.model.add(Dropout(0.3))
-        self.model.add(LSTM(64, input_shape=(128, in_size)))
-        self.model.add(Dropout(0.4))
+        #self.model.add(LSTM(128, input_shape=(128, in_size), return_sequences=True))
+        #self.model.add(Dropout(0.5))
+        self.model.add(LSTM(128, input_shape=(128, in_size)))
+        self.model.add(Dropout(0.5))
         self.model.add(Dense(out_size))
 
         self.optimizer = None
@@ -84,7 +82,7 @@ def main():
     Y_train = np.delete(Y, seed_idx, axis=0)
 
     generator = LSTMModel(input_window_size, output_size)
-    generator.train_model(X_train, Y_train, batch_size=512, epochs=1)
+    generator.train_model(X_train, Y_train, batch_size=1024, epochs=1)
 
     # music generation!
     gen_epoch = 64
