@@ -92,24 +92,24 @@ def main():
     # pattern will represent the last in_size 16th notes seen
     pattern = X_seed
     out_size = 1
+    threshold = 0.01
     for i in range(gen_epoch):
         # x = np.reshape(pattern, (1, in_size, 1))
         # predict the next out_size 16th notes from the pattern
         # pred = generator.predict(x).reshape(1, out_size, 1)
         pred = generator.predict(pattern.reshape(1, output_size, input_window_size)).reshape(output_size, output_window_size)
+        bool_pred = np.array((pred > threshold).astype(int))
         # convert to string representation
         # pred_str = dc.dataset_to_str(pred)
         # append the new output, and remove the equivalent amount of input from the start for the next prediction
-        pattern = np.concatenate((pattern, pred), axis=1)
+        pattern = np.concatenate((pattern, bool_pred), axis=1)
         pattern = pattern[:, output_window_size:]
-        pred_result = np.concatenate((pred_result, pred), axis=1)
+        pred_result = np.concatenate((pred_result, bool_pred), axis=1)
 
     print(pred_result)
 
     # pred_file = dc.str_to_midi(pred_result, filename='pred_output.mid')
-    threshold = 0.01
-    bool_arr = np.array((pred_result > threshold).astype(int))
-    pred_file = arr_to_midi(bool_arr, filename='pred_output.mid')
+    pred_file = arr_to_midi(pred_result[:, 1:], filename='pred_output.mid')
 
     print('The generated music is at: {}'.format(pred_file))
 
