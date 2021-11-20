@@ -92,7 +92,7 @@ class DatasetConversion(object):
             # print(filepath)
             with open(filepath, 'r', encoding='utf-8') as in_f:
                 data = in_f.read()
-                dataset = utils.str_to_np(data) / 128.0
+                dataset = utils.str_to_np(data)
 
                 num_examples = (dataset.shape[1] - total_size_per_feed) // step
 
