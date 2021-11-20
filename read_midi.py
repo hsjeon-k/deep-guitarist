@@ -211,7 +211,7 @@ def arr_to_midi(arr: np.ndarray, filename: str=None) -> None:
     mf.addTempo(track, time, tempo)
 
     # add notes
-    threshold = 50
+    # threshold = 50
     channel = 0
     row, col = arr.shape
     time_step = 1. / 4.
@@ -220,28 +220,33 @@ def arr_to_midi(arr: np.ndarray, filename: str=None) -> None:
     for i in range(row):
         start_time = 0
         duration = 0
-        prev_velo = 0
+        # prev_velo = 0
         pitch = i
+
+        velocity = 64
 
         # loop through each time step of current pitch to add notes
         for j in range(col):
             cur_velo = arr[i, j]
             if cur_velo > 0:
-                if duration > 0 and (cur_velo - prev_velo) ** 2 >= threshold ** 2:
+                # if duration > 0 and (cur_velo - prev_velo) ** 2 >= threshold ** 2:
+                if duration > 0:
                     # if the velocity difference between adjacent notes is large, begin new note
-                    mf.addNote(track, channel, pitch, start_time, duration, int(prev_velo))
+                    mf.addNote(track, channel, pitch, start_time, duration, velocity)
                     duration = 0
-                if duration == 0 or (cur_velo - prev_velo) ** 2 < threshold ** 2:
+
+                # if duration == 0 or (cur_velo - prev_velo) ** 2 < threshold ** 2:
+                if duration == 0:
                     # begin counting duration and keeping track of start_time
                     start_time = j * time_step
                     prev_velo = cur_velo if duration == 0 else prev_velo
                 # continue adding duration
                 duration += time_step
             elif duration > 0:
-                mf.addNote(track, channel, pitch, start_time, duration, int(prev_velo))
+                mf.addNote(track, channel, pitch, start_time, duration, velocity)
                 duration = 0
         if duration > 0:
-            mf.addNote(track, channel, pitch, start_time, duration, int(prev_velo))
+            mf.addNote(track, channel, pitch, start_time, duration, velocity)
 
     # write to midi file
     filename = "test.mid" if filename is None else filename
