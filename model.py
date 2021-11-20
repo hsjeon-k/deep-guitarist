@@ -31,7 +31,7 @@ class LSTMModel(object):
         self.model.add(Dropout(0.3))
         self.model.add(LSTM(64, input_shape=(128, in_size)))
         self.model.add(Dropout(0.4))
-        self.model.add(Dense(out_size, activation='softmax'))
+        self.model.add(Dense(out_size, activation='sigmoid'))
 
         self.optimizer = None
 
@@ -56,7 +56,6 @@ class LSTMModel(object):
 
     def predict(self, X_seed):
         return self.model.predict(X_seed)
-import pdb
 
 def main():
     if len(sys.argv) != 2:
@@ -99,7 +98,6 @@ def main():
         # pred = generator.predict(x).reshape(1, out_size, 1)
         pred = generator.predict(pattern.reshape(1, output_size, input_window_size)).reshape(output_size, output_window_size)
         pred = np.floor(pred * 128)
-        pdb.set_trace()
         # convert to string representation
         # pred_str = dc.dataset_to_str(pred)
         # append the new output, and remove the equivalent amount of input from the start for the next prediction
@@ -108,7 +106,6 @@ def main():
         pred_result = np.concatenate((pred_result, pred), axis=1)
 
     print(pred_result)
-    pdb.set_trace()
 
     # pred_file = dc.str_to_midi(pred_result, filename='pred_output.mid')
     pred_file = arr_to_midi(pred_result.astype(int), filename='pred_output.mid')
@@ -117,4 +114,5 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 
