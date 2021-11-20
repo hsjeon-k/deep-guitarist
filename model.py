@@ -29,7 +29,7 @@ class LSTMModel(object):
         #self.model.add(Dropout(0.5))
         self.model.add(LSTM(128, input_shape=(128, in_size)))
         self.model.add(Dropout(0.5))
-        self.model.add(Dense(out_size))
+        self.model.add(Dense(out_size, activation='sigmoid'))
 
         self.optimizer = None
 
