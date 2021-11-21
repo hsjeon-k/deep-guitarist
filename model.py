@@ -68,7 +68,7 @@ def main():
 
     input_window_size = 4
     output_window_size = 1
-    step = 8
+    step = 4
     X, Y = dc.txt_to_dataset(input_window_size=input_window_size, output_window_size=output_window_size, step=step)
 
     # X = X[:, 32:96, :]
@@ -85,12 +85,12 @@ def main():
     generator.train_model(X_train, Y_train, batch_size=1024, epochs=1)
 
     # music generation!
-    gen_epoch = 64
+    gen_epoch = 128
     pred_result = np.zeros((output_size, output_window_size))
     # pattern will represent the last in_size 16th notes seen
     pattern = X_seed
     out_size = 1
-    threshold = 0.01
+    threshold = 0.5
     for i in range(gen_epoch):
         # x = np.reshape(pattern, (1, in_size, 1))
         # predict the next out_size 16th notes from the pattern
