@@ -81,6 +81,8 @@ def file_to_str(filename: str) -> str:
 
 # converts string input into a numpy array of midi track
 def str_to_np(txt: str) -> np.ndarray:
+    slice_value = 32
+
     str_lst = txt.split(chr(NOTES_SIZE))
     lst_sz = len(str_lst)
     result = np.zeros((NOTES_SIZE, lst_sz))
@@ -99,7 +101,7 @@ def str_to_np(txt: str) -> np.ndarray:
 
         result[:, i] = cur_col
     
-    return result
+    return result[:, slice_value : NOTES_SIZE - slice_value]
 
 
 # converts for each track of given midi file into a compressed .txt file
