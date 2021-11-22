@@ -12,6 +12,7 @@ import numpy as np
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import LSTM, Dropout, Dense
 from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.callbacks import EarlyStopping
 
 # from dataset_conversion import DatasetConversion
 from dataset_conversion_new import DatasetConversion
@@ -25,9 +26,9 @@ class LSTMModel(object):
         self.model = Sequential()
         #self.model.add(LSTM(256, input_shape=(in_size, 1), return_sequences=True))
         #self.model.add(Dropout(0.3))
-        #self.model.add(LSTM(128, input_shape=(128, in_size), return_sequences=True))
-        #self.model.add(Dropout(0.5))
-        self.model.add(LSTM(128, input_shape=(note_size, in_size)))
+        self.model.add(LSTM(64, input_shape=(note_size, in_size), return_sequences=True))
+        self.model.add(Dropout(0.5))
+        self.model.add(LSTM(64, input_shape=(note_size, in_size)))
         self.model.add(Dropout(0.5))
         self.model.add(Dense(out_size))
         # self.model.add(Dense(out_size, activation='sigmoid'))
@@ -49,9 +50,12 @@ class LSTMModel(object):
 
         Defines and trains the model on the given training set
         '''
+        # stops training if the loss does not decrease over 3 epochs
+        callback = EarlyStopping(monitor='loss', patience=3)
+
         self.optimizer = Adam(learning_rate=learning_rate)
         self.model.compile(loss='mean_squared_error', optimizer=self.optimizer)
-        self.model.fit(X_train, Y_train, batch_size=batch_size, epochs=epochs, verbose=1)
+        self.model.fit(X_train, Y_train, batch_size=batch_size, epochs=epochs, callbacks=[callback], verbose=1)
 
     def predict(self, X_seed):
         return self.model.predict(X_seed)
@@ -67,9 +71,9 @@ def main():
     # comment out the line below if you already have MIDI files converted to text files
     # dc.midi_to_txt()
 
-    input_window_size = 4
+    input_window_size = 16
     output_window_size = 1
-    step = 4
+    step = 2
     X, Y = dc.txt_to_dataset(input_window_size=input_window_size, output_window_size=output_window_size, step=step)
 
     # X = X[:, 32:96, :]
@@ -85,7 +89,7 @@ def main():
     note_size = 64
 
     generator = LSTMModel(note_size, input_window_size, output_size)
-    generator.train_model(X_train, Y_train, batch_size=1024, epochs=1)
+    generator.train_model(X_train, Y_train, batch_size=1024, epochs=30)
 
     # music generation!
     gen_epoch = 128
@@ -93,7 +97,7 @@ def main():
     # pattern will represent the last in_size 16th notes seen
     pattern = X_seed
     out_size = 1
-    threshold = 0.5
+    threshold = 0.015
     for i in range(gen_epoch):
         # x = np.reshape(pattern, (1, in_size, 1))
         # predict the next out_size 16th notes from the pattern
