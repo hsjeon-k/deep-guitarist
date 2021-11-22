@@ -130,7 +130,9 @@ def main():
     dir_path = sys.argv[1]
 
     plt.figure()
-    plt.title('Losses')
+    plt.title('Losses by Input Timestep and Step Size')
+    plt.xlabel('Epochs')
+    plt.ylabel('Loss')
 
     for input_window_size in [8, 16, 32, 64]:
         for step in [1, 2, 4, 8]:
