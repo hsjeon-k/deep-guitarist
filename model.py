@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import LSTM, Dropout, Dense
 from tensorflow.keras.optimizers import Adam
-from tensorflow.keras.callbacks import EarlyStopping
+from tensorflow.keras.callbacks import EarlyStopping, TerminateOnNaN
 
 # from dataset_conversion import DatasetConversion
 from dataset_conversion_new import DatasetConversion
@@ -53,11 +53,13 @@ class LSTMModel(object):
         Defines and trains the model on the given training set
         '''
         # stops training if the loss does not decrease over 3 epochs
-        callback = EarlyStopping(monitor='loss', patience=3)
+        callback_early_stopping = EarlyStopping(monitor='loss', patience=3)
+        callback_terminate_nan = TerminateOnNaN()
 
         self.optimizer = Adam(learning_rate=learning_rate)
         self.model.compile(loss='mean_squared_error', optimizer=self.optimizer)
-        history = self.model.fit(X_train, Y_train, batch_size=batch_size, epochs=epochs, callbacks=[callback], verbose=1)
+        history = self.model.fit(X_train, Y_train, batch_size=batch_size, epochs=epochs,\
+                                 callbacks=[callback_early_stopping, callback_terminate_nan], verbose=1)
 
         return history
 
