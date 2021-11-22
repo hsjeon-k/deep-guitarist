@@ -89,12 +89,6 @@ def test(dir_path, input_window_size, step, thresholds):
     generator = LSTMModel(note_size, input_window_size, output_size)
     history = generator.train_model(X_train, Y_train, batch_size=1024, epochs=30)
 
-    plt.figure()
-    plt.plot(history['loss'])
-    plt.title('Input Window Size = ' + str(input_window_size) + '; Step = ' + str(step))
-    plt_name = 'loss_' + str(input_window_size) + '_' + str(step) + '.png'
-    plt.savefig(plt_name)
-
     # music generation!
     gen_epoch = 128
     pred_result = np.zeros((output_size, output_window_size))
@@ -125,6 +119,8 @@ def test(dir_path, input_window_size, step, thresholds):
 
         print('The generated music is at: {}'.format(pred_file))
 
+    return history
+
 
 def main():
     if len(sys.argv) != 2:
@@ -133,11 +129,17 @@ def main():
 
     dir_path = sys.argv[1]
 
+    plt.figure()
+    plt.title('Losses')
+
     for input_window_size in [8, 16, 32, 64]:
         for step in [1, 2, 4, 8]:
             thresholds = [0.01, 0.015, 0.02, 0.025, 0.03]
-            test(dir_path, input_window_size, step, thresholds)
+            history = test(dir_path, input_window_size, step, thresholds)
+            plt.plot(history['loss'], label=('input=' + str(input_window_size) + ', step=' + str(step)))
 
+    plt.legend(loc='upper right')
+    plt.savefig('losses.png')
 
 if __name__ == '__main__':
     main()
