@@ -22,6 +22,8 @@ SEPARATOR = chr(utils.NOTES_SIZE) # separator between each timestep in .txt file
 DEFAULT_NUM_INPUT = 16 # default number of unit input to be inserted at once
 DEFAULT_NUM_OUTPUT = 1 # default number of unit output to be taken at once
 
+DATASET_ROW_SIZE = utils.NOTES_SIZE - 2 * utils.SLICE_VALUE
+
 MIDI_EXTS = ['.mid', '.midi']
 TXT_EXTS = ['.txt']
 
@@ -81,8 +83,8 @@ class DatasetConversion(object):
         # initialize
         extend_sz = 10000
 
-        X = np.zeros((extend_sz, 128, num_input_size))
-        Y = np.zeros((extend_sz, 128, num_output_size))
+        X = np.zeros((extend_sz, DATASET_ROW_SIZE, num_input_size))
+        Y = np.zeros((extend_sz, DATASET_ROW_SIZE, num_output_size))
         file_example_start_idx = 0
         for file_cnt, file in enumerate(txtfile_list):
             # get the total path
@@ -109,8 +111,8 @@ class DatasetConversion(object):
                               .reshape(1, dataset.shape[0], num_output_size)
 
                     if file_example_start_idx + idx >= X.shape[0]:
-                        X = np.concatenate((X, np.zeros((extend_sz, 128, num_input_size))))
-                        Y = np.concatenate((Y, np.zeros((extend_sz, 128, num_output_size))))
+                        X = np.concatenate((X, np.zeros((extend_sz, DATASET_ROW_SIZE, num_input_size))))
+                        Y = np.concatenate((Y, np.zeros((extend_sz, DATASET_ROW_SIZE, num_output_size))))
                         extend_sz *= 2
 
                     X[file_example_start_idx + idx] = input_x
