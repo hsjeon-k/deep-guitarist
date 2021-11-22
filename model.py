@@ -27,7 +27,7 @@ class LSTMModel(object):
         #self.model.add(Dropout(0.3))
         #self.model.add(LSTM(128, input_shape=(128, in_size), return_sequences=True))
         #self.model.add(Dropout(0.5))
-        self.model.add(LSTM(note_size, input_shape=(128, in_size)))
+        self.model.add(LSTM(128, input_shape=(note_size, in_size)))
         self.model.add(Dropout(0.5))
         self.model.add(Dense(out_size))
         # self.model.add(Dense(out_size, activation='sigmoid'))
