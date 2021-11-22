@@ -14,6 +14,7 @@ from mido import MidiFile
 import pandas as pd
 import numpy as np
 from midiutil import MIDIFile as MF
+import utils
 
 import sys
 import pdb
@@ -200,6 +201,21 @@ def parse_midi_messages(filename):
 
 
 def arr_to_midi(arr: np.ndarray, filename: str=None) -> None:
+    '''
+    Function: arr_to_midi
+
+    Input--
+        arr : name of MIDI file to read
+        filename : name of output file to 
+    Output--
+        None : 
+
+    Reads in the provided MIDI file and converts the note arrangements into a NumPy array,
+    where the rows represent note pitches (0-127) and columns represent each 16th note.
+    Note that any subdivisions smaller than 16th note (e.g., 32nd note) are rounded to the nearest 16th note,
+        in order to reduce the dimensions of the input data..
+    At any timestep, pressed notes have the velocities as their values, and others have values of 0.
+    '''
     # initialize variables
     track = 0
     time = 0
@@ -221,7 +237,7 @@ def arr_to_midi(arr: np.ndarray, filename: str=None) -> None:
         start_time = 0
         duration = 0
         # prev_velo = 0
-        pitch = i
+        pitch = i + utils.NOTES_SIZE
 
         velocity = 100
 
