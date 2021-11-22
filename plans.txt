@@ -3,3 +3,16 @@
 - LSTM model: start with transfer learning?
 
 
+
+
+
+
+
+NEW plans
+- filter out training examples with too many identical columns (i.e. long presses) b/c it might interfere w/ training
+    - set another threshold value for this length
+- change threshold value: or assign velocity in proportion to the output values, rather than just a constant value for all pressed notes
+- baroque music?
+- if the dataset contains slow music, use 8th-note base instead of 16th note?
+- back to text generation: not necessarily the text generation format, but the idea of using the list of pressed notes, rather than 0/1s
+
