@@ -9,6 +9,8 @@ This file defines the LSTM model for music generation.
 import sys
 import numpy as np
 
+import matplotlib.pyplot as plt
+
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import LSTM, Dropout, Dense
 from tensorflow.keras.optimizers import Adam
@@ -46,7 +48,7 @@ class LSTMModel(object):
             epochs(int)         : number of epochs to train for
             learning_rate(float): learning rate of the model
         Output--
-            None
+            history (Keras history)
 
         Defines and trains the model on the given training set
         '''
@@ -55,25 +57,21 @@ class LSTMModel(object):
 
         self.optimizer = Adam(learning_rate=learning_rate)
         self.model.compile(loss='mean_squared_error', optimizer=self.optimizer)
-        self.model.fit(X_train, Y_train, batch_size=batch_size, epochs=epochs, callbacks=[callback], verbose=1)
+        history = self.model.fit(X_train, Y_train, batch_size=batch_size, epochs=epochs, callbacks=[callback], verbose=1)
+
+        return history
 
     def predict(self, X_seed):
         return self.model.predict(X_seed)
 
-def main():
-    if len(sys.argv) != 2:
-        print('Usage: python3 model.py midi_directory_path')
-        exit(0)
-
-    dir_path = sys.argv[1]
-
+def test(dir_path, input_window_size, step, thresholds):
     dc = DatasetConversion(dir_path, sep_by_type='word')
     # comment out the line below if you already have MIDI files converted to text files
     # dc.midi_to_txt()
 
-    input_window_size = 16
+    input_window_size = input_window_size
     output_window_size = 1
-    step = 2
+    step = step
     X, Y = dc.txt_to_dataset(input_window_size=input_window_size, output_window_size=output_window_size, step=step)
 
     # X = X[:, 32:96, :]
@@ -89,7 +87,13 @@ def main():
     note_size = 64
 
     generator = LSTMModel(note_size, input_window_size, output_size)
-    generator.train_model(X_train, Y_train, batch_size=1024, epochs=30)
+    history = generator.train_model(X_train, Y_train, batch_size=1024, epochs=30)
+
+    plt.figure()
+    plt.plot(history['loss'])
+    plt.title('Input Window Size = ' + str(input_window_size) + '; Step = ' + str(step))
+    plt_name = 'loss_' + str(input_window_size) + '_' + str(step) + '.png'
+    plt.savefig(plt_name)
 
     # music generation!
     gen_epoch = 128
@@ -97,26 +101,43 @@ def main():
     # pattern will represent the last in_size 16th notes seen
     pattern = X_seed
     out_size = 1
-    threshold = 0.015
-    for i in range(gen_epoch):
-        # x = np.reshape(pattern, (1, in_size, 1))
-        # predict the next out_size 16th notes from the pattern
-        # pred = generator.predict(x).reshape(1, out_size, 1)
-        pred = generator.predict(pattern.reshape(1, output_size, input_window_size)).reshape(output_size, output_window_size)
-        bool_pred = np.array((pred > threshold).astype(int))
-        # convert to string representation
-        # pred_str = dc.dataset_to_str(pred)
-        # append the new output, and remove the equivalent amount of input from the start for the next prediction
-        pattern = np.concatenate((pattern, bool_pred), axis=1)
-        pattern = pattern[:, output_window_size:]
-        pred_result = np.concatenate((pred_result, bool_pred), axis=1)
 
-    print(pred_result)
+    for threshold in thresholds:
 
-    # pred_file = dc.str_to_midi(pred_result, filename='pred_output.mid')
-    pred_file = arr_to_midi(pred_result[:, 1:], filename='pred_output.mid')
+        for i in range(gen_epoch):
+            # x = np.reshape(pattern, (1, in_size, 1))
+            # predict the next out_size 16th notes from the pattern
+            # pred = generator.predict(x).reshape(1, out_size, 1)
+            pred = generator.predict(pattern.reshape(1, output_size, input_window_size)).reshape(output_size, output_window_size)
+            bool_pred = np.array((pred > threshold).astype(int))
+            # convert to string representation
+            # pred_str = dc.dataset_to_str(pred)
+            # append the new output, and remove the equivalent amount of input from the start for the next prediction
+            pattern = np.concatenate((pattern, bool_pred), axis=1)
+            pattern = pattern[:, output_window_size:]
+            pred_result = np.concatenate((pred_result, bool_pred), axis=1)
 
-    print('The generated music is at: {}'.format(pred_file))
+        print(pred_result)
+
+        # pred_file = dc.str_to_midi(pred_result, filename='pred_output.mid')
+        pred_file = arr_to_midi(pred_result[:, 1:], \
+                                filename=('pred_output_' + str(input_window_size) + '_' + str(step) + '_' + str(threshold) + '.mid'))
+
+        print('The generated music is at: {}'.format(pred_file))
+
+
+def main():
+    if len(sys.argv) != 2:
+        print('Usage: python3 model.py midi_directory_path')
+        exit(0)
+
+    dir_path = sys.argv[1]
+
+    for input_window_size in [8, 16, 32, 64]:
+        for step in [1, 2, 4, 8]:
+            thresholds = [0.01, 0.015, 0.02, 0.025, 0.03]
+            test(dir_path, input_window_size, step, thresholds)
+
 
 if __name__ == '__main__':
     main()
