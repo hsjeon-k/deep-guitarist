@@ -100,7 +100,7 @@ def str_to_np(txt: str) -> np.ndarray:
 
         result[:, i] = cur_col
     
-    return result[:, SLICE_VALUE : NOTES_SIZE - SLICE_VALUE]
+    return result[SLICE_VALUE : NOTES_SIZE - SLICE_VALUE, :]
 
 
 # converts for each track of given midi file into a compressed .txt file
