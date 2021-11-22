@@ -237,7 +237,7 @@ def arr_to_midi(arr: np.ndarray, filename: str=None) -> None:
         start_time = 0
         duration = 0
         # prev_velo = 0
-        pitch = i + utils.NOTES_SIZE
+        pitch = i + utils.SLICE_VALUE
 
         velocity = 100
 
