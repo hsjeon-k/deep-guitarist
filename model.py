@@ -138,7 +138,7 @@ def main():
         for step in [1, 2, 4, 8]:
             thresholds = [0.01, 0.015, 0.02, 0.025, 0.03]
             history = test(dir_path, input_window_size, step, thresholds)
-            plt.plot(history['loss'], label=('input=' + str(input_window_size) + ', step=' + str(step)))
+            plt.plot(history.history['loss'], label=('input=' + str(input_window_size) + ', step=' + str(step)))
 
     plt.legend(loc='upper right')
     plt.savefig('losses.png')
