@@ -131,19 +131,23 @@ def main():
 
     dir_path = sys.argv[1]
 
-    plt.figure()
-    plt.title('Losses by Input Timestep and Step Size')
-    plt.xlabel('Epochs')
-    plt.ylabel('Loss')
 
-    for input_window_size in [8, 16, 32, 64]:
-        for step in [1, 2, 4, 8]:
-            thresholds = [0.01, 0.015, 0.02, 0.025, 0.03]
+    for input_window_size in [64, 128]:
+    #for input_window_size in [8, 16, 32, 64]:
+        plt.figure()
+        plt.title('Losses by Step Size: Input Timestep = ' + str(input_window_size))
+        plt.xlabel('Epochs')
+        plt.ylabel('Loss')
+        #plt.ylim(0, 0.5)
+        for step in [8, 16]:
+        #for step in [1, 2, 4, 8]:
+            thresholds = [0.03, 0.035, 0.04]
+            #thresholds = [0.01, 0.015, 0.02, 0.025, 0.03]
             history = test(dir_path, input_window_size, step, thresholds)
-            plt.plot(history.history['loss'], label=('input=' + str(input_window_size) + ', step=' + str(step)))
+            plt.plot(history.history['loss'], label=('step=' + str(step)))
+        plt.legend(loc='upper right')
+        plt.savefig('losses_input' + str(input_window_size) + '.png')
 
-    plt.legend(loc='upper right')
-    plt.savefig('losses.png')
 
 if __name__ == '__main__':
     main()
