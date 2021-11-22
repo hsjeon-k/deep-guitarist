@@ -20,16 +20,17 @@ from read_midi import arr_to_midi
 ## class definition
 class LSTMModel(object):
 
-    def __init__(self, in_size, out_size):
+    def __init__(self, note_size, in_size, out_size):
         # define model
         self.model = Sequential()
         #self.model.add(LSTM(256, input_shape=(in_size, 1), return_sequences=True))
         #self.model.add(Dropout(0.3))
         #self.model.add(LSTM(128, input_shape=(128, in_size), return_sequences=True))
         #self.model.add(Dropout(0.5))
-        self.model.add(LSTM(128, input_shape=(128, in_size)))
+        self.model.add(LSTM(note_size, input_shape=(128, in_size)))
         self.model.add(Dropout(0.5))
-        self.model.add(Dense(out_size, activation='sigmoid'))
+        self.model.add(Dense(out_size))
+        # self.model.add(Dense(out_size, activation='sigmoid'))
 
         self.optimizer = None
 
@@ -81,7 +82,9 @@ def main():
     X_train, X_seed = np.delete(X, seed_idx, axis=0), X[seed_idx, :, :]
     Y_train = np.delete(Y, seed_idx, axis=0)
 
-    generator = LSTMModel(input_window_size, output_size)
+    note_size = 64
+
+    generator = LSTMModel(note_size, input_window_size, output_size)
     generator.train_model(X_train, Y_train, batch_size=1024, epochs=1)
 
     # music generation!
