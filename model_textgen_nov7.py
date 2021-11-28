@@ -23,7 +23,7 @@ class LSTMModel(object):
         self.model = Sequential()
         #self.model.add(LSTM(256, input_shape=(in_size, 1), return_sequences=True))
         #self.model.add(Dropout(0.3))
-        self.model.add(LSTM(64, input_shape=(in_size, 1)))
+        self.model.add(LSTM(64, input_shape=(1, in_size)))
         self.model.add(Dense(out_size))
 
         self.optimizer = None
@@ -64,6 +64,8 @@ def main():
     num_examples, in_size, _ = X.shape
     _, out_size, _ = Y.shape
 
+    X, Y = np.swapaxes(X, 1, 2), np.swapaxes(Y, 1, 2)
+    
     # set a random example as the seed input for music generation later
     seed_idx = np.random.randint(num_examples)
     X_train, X_seed = np.delete(X, seed_idx, axis=0), X[seed_idx, :, :]
