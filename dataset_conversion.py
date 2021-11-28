@@ -14,6 +14,8 @@ import numpy as np
 import sys
 import os
 
+import random
+
 import utils
 
 
@@ -86,6 +88,7 @@ class DatasetConversion(object):
         for file in txtfile_list:
             # get the total path
             filepath = os.path.join(self.dir_path, file)
+
             with open(filepath, 'r') as in_f:
                 data = in_f.read().strip('\n')
                 if self.sep_by_type == 'word':
@@ -98,6 +101,8 @@ class DatasetConversion(object):
 
                 # for all possible continuous combinations of size total_size_per_feed:
                 for idx in range(0, len(notes_split) - total_size_per_feed  + 1, window_step_size):
+                    if random.random() > 0.2:
+                        continue
                     # take the first num_input_size data as input
                     input_x = notes_split[idx : idx + num_input_size]
                     # take the later num_output_size data as output
@@ -120,16 +125,16 @@ class DatasetConversion(object):
         input_ints = [[self.data_to_int[comb]/len(self.data_to_int) for comb in input_x] for input_x in inputs]
         # output_ints = [[self.data_to_int[comb]/len(self.data_to_int) for comb in output_y] for output_y in outputs]
 
-        output_ints = np.zeros(len(outputs), len(self.data_to_int))
+        output_ints = np.zeros((len(outputs), len(self.data_to_int)), dtype=bool)
         for i in range(len(outputs)):
-            output_ints[i, self.data_to_int[possible_Y[i]]] = 1.
+            output_ints[i, self.data_to_int[possible_Y[i]]] = True
 
         # reshape the data to fit LSTM input format
         X = np.array(input_ints).reshape(len(inputs), num_input_size, 1)
         # Y = np.array(output_ints).reshape(len(outputs), num_output_size, 1)
         Y = output_ints
 
-        return X, Y
+        return X, Y, len(self.data_to_int)
 
     def dataset_to_str(self, Y):
         '''

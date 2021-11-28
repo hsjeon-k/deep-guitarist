@@ -11,20 +11,23 @@ import numpy as np
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import LSTM, Dropout, Dense
 from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.activations import softmax
 
 from dataset_conversion import DatasetConversion
 
+import utils
 
 ## class definition
 class LSTMModel(object):
 
-    def __init__(self, in_size, out_size):
+    def __init__(self, in_size, dict_size):
         # define model
         self.model = Sequential()
         #self.model.add(LSTM(256, input_shape=(in_size, 1), return_sequences=True))
         #self.model.add(Dropout(0.3))
         self.model.add(LSTM(64, input_shape=(1, in_size)))
-        self.model.add(Dense(out_size))
+        self.model.add(Dropout(0.5))
+        self.model.add(Dense(dict_size))
 
         self.optimizer = None
 
@@ -59,37 +62,43 @@ def main():
     dc = DatasetConversion(dir_path, sep_by_type='word')
     # comment out the line below if you already have MIDI files converted to text files
     # dc.midi_to_txt()
-    X, Y = dc.txt_to_dataset(num_input=32, num_output=16)
+    X, Y, dict_size = dc.txt_to_dataset(num_input=32, num_output=16)
 
     num_examples, in_size, _ = X.shape
-    _, out_size, _ = Y.shape
 
-    X, Y = np.swapaxes(X, 1, 2), np.swapaxes(Y, 1, 2)
-    
+    X = np.swapaxes(X, 1, 2)
+
     # set a random example as the seed input for music generation later
     seed_idx = np.random.randint(num_examples)
     X_train, X_seed = np.delete(X, seed_idx, axis=0), X[seed_idx, :, :]
     Y_train = np.delete(Y, seed_idx, axis=0)
 
-    generator = LSTMModel(in_size, out_size)
-    generator.train_model(X_train, Y_train, batch_size=32, epochs=4)
+    generator = LSTMModel(in_size, dict_size)
+    generator.train_model(X_train, Y_train, batch_size=512, epochs=10)
 
     # music generation!
-    gen_epoch = 64
+    gen_epoch = 512
     pred_result = ""
+    for idx in range(X_seed.shape[1]):
+        pred_result += dc.int_to_data[int(X_seed[0, idx] * dict_size)]
+        pred_result += chr(utils.NOTES_SIZE)
     # pattern will represent the last in_size 16th notes seen
     pattern = X_seed
     for i in range(gen_epoch):
-        x = np.reshape(pattern, (1, in_size, 1))
+        x = np.reshape(pattern, (1, 1, in_size))
         # predict the next out_size 16th notes from the pattern
-        pred = generator.predict(x).reshape(1, out_size, 1)
+        pred = np.argmax(generator.predict(x))
+        print(pred)
         # convert to string representation
-        pred_str = dc.dataset_to_str(pred)
+        pred_str = dc.int_to_data[pred]
         # append the new output, and remove the equivalent amount of input from the start for the next prediction
-        pattern = np.concatenate((x, pred), axis=1)
-        pattern = pattern[:, out_size:, :]
+        pattern = np.concatenate((x, pred.reshape(1, 1, 1)), axis=2)
+        pattern = pattern[:, :, 1:]
 
         pred_result += pred_str
+        pred_result += chr(utils.NOTES_SIZE)
+        print(pred_str)
+        print(pred_result)
 
     pred_file = dc.str_to_midi(pred_result, filename='pred_output.mid')
 
