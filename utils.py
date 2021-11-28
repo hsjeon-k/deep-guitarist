@@ -81,16 +81,18 @@ def file_to_str(filename: str) -> str:
 
 
 # converts string input into a numpy array of midi track
-def str_to_np(txt: str) -> np.ndarray:
+def str_to_np(txt: str, is_file_conversion: bool = True) -> np.ndarray:
     str_lst = txt.split(chr(NOTES_SIZE))
     lst_sz = len(str_lst)
+    print("size of splitted string list:", lst_sz)
     result = np.zeros((NOTES_SIZE, lst_sz))
     for i, s in enumerate(str_lst):
         # assert len(s) % 2 == 0
         half = len(s) // 2
 
-        # get array of note_on indices and velocities
-        inds = char_to_num(s[:half])
+        # get array of indices for 'note_on' pitches
+        inds = char_to_num(s[:half]) if is_file_conversion else char_to_num(s)
+        
         # velos = char_to_num(s[half:2 * half])
 
         # create current column of all notes (on and off) and append it to result array
