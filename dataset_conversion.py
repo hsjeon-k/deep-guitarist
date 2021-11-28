@@ -100,11 +100,11 @@ class DatasetConversion(object):
                     notes_split = [s for s in notes_split if s != '']
                 elif self.sep_by_type == 'char':
                     # if reading by character, just split each individual character
-                    notes_split = data.split(SEPARATOR)
-                    notes_split = [s[:len(s) // 2] for s in notes_split]
-                    notes_split = [s for s in notes_split if s != '']
-                    notes_split = SEPARATOR.join(notes_split)
-                    notes_split = list(notes_split)
+                    # notes_split = data.split(SEPARATOR)
+                    # notes_split = [s[:len(s) // 2] for s in notes_split]
+                    # notes_split = [s for s in notes_split if s != '']
+                    # notes_split = SEPARATOR.join(notes_split)
+                    notes_split = list(data)
 
                 # for all possible continuous combinations of size total_size_per_feed:
                 for idx in range(0, len(notes_split) - total_size_per_feed  + 1, window_step_size):
