@@ -91,6 +91,7 @@ class DatasetConversion(object):
                 if self.sep_by_type == 'word':
                     # if reading by word, split by the timestep separator (defined in utils.py)
                     notes_split = data.split(SEPARATOR)
+                    notes_split = [s[:len(s) // 2] for s in notes_split]
                 elif self.sep_by_type == 'char':
                     # if reading by character, just split each individual character
                     notes_split = list(data)
