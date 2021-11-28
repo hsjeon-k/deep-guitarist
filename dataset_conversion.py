@@ -12,11 +12,16 @@ or each character (literally each character in the .txt string) as the unit of i
 import numpy as np
 
 import sys
+from importlib import reload
+reload(sys)  # Reload does the trick!
+sys.setdefaultencoding('UTF8')
+
 import os
 
 import random
 
 import utils
+
 
 
 ## constants
