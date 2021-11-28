@@ -89,7 +89,7 @@ class DatasetConversion(object):
             # get the total path
             filepath = os.path.join(self.dir_path, file)
 
-            with open(filepath, 'r') as in_f:
+            with open(filepath, 'r', encoding="utf-8") as in_f:
                 data = in_f.read().strip('\n')
                 if self.sep_by_type == 'word':
                     # if reading by word, split by the timestep separator (defined in utils.py)
