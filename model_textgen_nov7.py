@@ -23,9 +23,11 @@ class LSTMModel(object):
     def __init__(self, in_size, dict_size):
         # define model
         self.model = Sequential()
-        #self.model.add(LSTM(256, input_shape=(in_size, 1), return_sequences=True))
-        #self.model.add(Dropout(0.3))
-        self.model.add(LSTM(64, input_shape=(1, in_size)))
+        self.model.add(LSTM(128, input_shape=(1, in_size), return_sequences=True))
+        self.model.add(Dropout(0.3))
+        self.model.add(LSTM(256, return_sequences=True))
+        self.model.add(Dropout(0.3))
+        self.model.add(LSTM(128))
         self.model.add(Dropout(0.5))
         self.model.add(Dense(dict_size))
 
@@ -62,7 +64,7 @@ def main():
     dc = DatasetConversion(dir_path, sep_by_type='word')
     # comment out the line below if you already have MIDI files converted to text files
     # dc.midi_to_txt()
-    X, Y, dict_size = dc.txt_to_dataset(num_input=32, num_output=16)
+    X, Y, dict_size = dc.txt_to_dataset(num_input=32)
 
     num_examples, in_size, _ = X.shape
 
@@ -77,7 +79,7 @@ def main():
     generator.train_model(X_train, Y_train, batch_size=512, epochs=10)
 
     # music generation!
-    gen_epoch = 512
+    gen_epoch = 64
     pred_result = ""
     for idx in range(X_seed.shape[1]):
         pred_result += dc.int_to_data[int(X_seed[0, idx] * dict_size)]
@@ -87,7 +89,10 @@ def main():
     for i in range(gen_epoch):
         x = np.reshape(pattern, (1, 1, in_size))
         # predict the next out_size 16th notes from the pattern
-        pred = np.argmax(generator.predict(x))
+        pred = generator.predict(x)
+        print(pred)
+        pred = np.argmax(pred[0])
+        # pred = np.random.choice(dict_size, p=pred[0])
         print(pred)
         # convert to string representation
         pred_str = dc.int_to_data[pred]

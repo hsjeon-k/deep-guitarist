@@ -95,6 +95,7 @@ class DatasetConversion(object):
                     # if reading by word, split by the timestep separator (defined in utils.py)
                     notes_split = data.split(SEPARATOR)
                     notes_split = [s[:len(s) // 2] for s in notes_split]
+                    notes_split = [s for s in notes_split if s != '']
                 elif self.sep_by_type == 'char':
                     # if reading by character, just split each individual character
                     notes_split = list(data)
@@ -175,6 +176,6 @@ class DatasetConversion(object):
         This function convers our string representation of MIDI notes (likely outputted from model)
         to a playable .mid file.
         '''
-        arr = utils.str_to_np(text_string)
+        arr = utils.str_to_np(text_string, is_file_conversion=False)
         return utils.arr_to_midi(arr, filename)
 
