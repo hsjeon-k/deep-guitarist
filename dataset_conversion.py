@@ -72,7 +72,7 @@ class DatasetConversion(object):
 
         This function takes in a directory of .txt files and converts the data to a dataset format for LSTM.
         '''
-        window_step_size = 8
+        window_step_size = 1
 
         num_input_size = DEFAULT_NUM_INPUT if num_input is None else num_input
         num_output_size = DEFAULT_NUM_OUTPUT if num_output is None else num_output

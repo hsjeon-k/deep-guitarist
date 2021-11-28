@@ -1,3 +1,4 @@
+
 '''
 File: model.py
 Usage: python3 model.py midi_directory_path
@@ -23,11 +24,12 @@ class LSTMModel(object):
     def __init__(self, in_size, dict_size):
         # define model
         self.model = Sequential()
-        self.model.add(LSTM(128, input_shape=(1, in_size), return_sequences=True))
-        self.model.add(Dropout(0.3))
-        self.model.add(LSTM(256, return_sequences=True))
-        self.model.add(Dropout(0.3))
-        self.model.add(LSTM(128))
+        # self.model.add(LSTM(128, input_shape=(1, in_size), return_sequences=True))
+        # self.model.add(Dropout(0.3))
+        # self.model.add(LSTM(256, return_sequences=True))
+        # self.model.add(Dropout(0.3))
+        # self.model.add(LSTM(128))
+        self.model.add(LSTM(128, input_shape=(1, in_size)))
         self.model.add(Dropout(0.5))
         self.model.add(Dense(dict_size))
 
@@ -46,7 +48,7 @@ class LSTMModel(object):
             None
         Defines and trains the model on the given training set
         '''
-        self.optimizer = Adam(learning_rate=0.05)
+        self.optimizer = Adam(learning_rate=learning_rate)
         self.model.compile(loss='mean_squared_error', optimizer=self.optimizer)
         self.model.fit(X_train, Y_train, batch_size=batch_size, epochs=epochs, verbose=1)
 
@@ -61,10 +63,10 @@ def main():
 
     dir_path = sys.argv[1]
 
-    dc = DatasetConversion(dir_path, sep_by_type='word')
+    dc = DatasetConversion(dir_path, sep_by_type='char')
     # comment out the line below if you already have MIDI files converted to text files
     # dc.midi_to_txt()
-    X, Y, dict_size = dc.txt_to_dataset(num_input=32)
+    X, Y, dict_size = dc.txt_to_dataset(num_input=16)
 
     num_examples, in_size, _ = X.shape
 
@@ -76,7 +78,7 @@ def main():
     Y_train = np.delete(Y, seed_idx, axis=0)
 
     generator = LSTMModel(in_size, dict_size)
-    generator.train_model(X_train, Y_train, batch_size=512, epochs=10)
+    generator.train_model(X_train, Y_train, batch_size=1024, epochs=3, learning_rate=0.0025)
 
     # music generation!
     gen_epoch = 64
@@ -91,13 +93,14 @@ def main():
         # predict the next out_size 16th notes from the pattern
         pred = generator.predict(x)
         print(pred)
-        pred = np.argmax(pred[0])
-        # pred = np.random.choice(dict_size, p=pred[0])
-        print(pred)
+        # pred = np.argmax(pred[0])
+        pred_softmax = np.exp(pred[0]) / np.sum(np.exp(pred[0]))
+        pred_int = np.random.choice(dict_size, p=pred_softmax)
+        print(pred_int)
         # convert to string representation
-        pred_str = dc.int_to_data[pred]
+        pred_str = dc.int_to_data[pred_int]
         # append the new output, and remove the equivalent amount of input from the start for the next prediction
-        pattern = np.concatenate((x, pred.reshape(1, 1, 1)), axis=2)
+        pattern = np.concatenate((x, np.int64(pred_int).reshape(1, 1, 1)), axis=2)
         pattern = pattern[:, :, 1:]
 
         pred_result += pred_str
