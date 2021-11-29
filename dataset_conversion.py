@@ -108,7 +108,8 @@ class DatasetConversion(object):
 
                 # for all possible continuous combinations of size total_size_per_feed:
                 for idx in range(0, len(notes_split) - total_size_per_feed  + 1, window_step_size):
-                    if random.random() > 0.2:
+                    cutoff = 0.1 if self.sep_by_type == 'word' else 0.3
+                    if random.random() > cutoff:
                         continue
                     # take the first num_input_size data as input
                     input_x = notes_split[idx : idx + num_input_size]

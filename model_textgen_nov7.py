@@ -13,6 +13,7 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import LSTM, Dropout, Dense
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.activations import softmax
+from tensorflow.keras.callbacks import EarlyStopping, TerminateOnNaN
 
 from dataset_conversion import DatasetConversion
 
@@ -31,7 +32,7 @@ class LSTMModel(object):
         # self.model.add(LSTM(128))
         self.model.add(LSTM(128, input_shape=(1, in_size)))
         self.model.add(Dropout(0.5))
-        self.model.add(Dense(dict_size))
+        self.model.add(Dense(dict_size, activation=softmax))
 
         self.optimizer = None
 
@@ -48,9 +49,13 @@ class LSTMModel(object):
             None
         Defines and trains the model on the given training set
         '''
+        callback_early_stopping = EarlyStopping(monitor='loss', patience=3)
+        callback_terminate_nan = TerminateOnNaN()
+
         self.optimizer = Adam(learning_rate=learning_rate)
-        self.model.compile(loss='mean_squared_error', optimizer=self.optimizer)
-        self.model.fit(X_train, Y_train, batch_size=batch_size, epochs=epochs, verbose=1)
+        self.model.compile(loss='categorical_crossentropy', optimizer=self.optimizer)
+        self.model.fit(X_train, Y_train, batch_size=batch_size, epochs=epochs, verbose=1,
+                       callbacks=[callback_early_stopping, callback_terminate_nan])
 
     def predict(self, X_seed):
         return self.model.predict(X_seed)
@@ -78,10 +83,10 @@ def main():
     Y_train = np.delete(Y, seed_idx, axis=0)
 
     generator = LSTMModel(in_size, dict_size)
-    generator.train_model(X_train, Y_train, batch_size=1024, epochs=3, learning_rate=0.0025)
+    generator.train_model(X_train, Y_train, batch_size=1024, epochs=50, learning_rate=0.05)
 
     # music generation!
-    gen_epoch = 64
+    gen_epoch = 256
     pred_result = ""
     for idx in range(X_seed.shape[1]):
         pred_result += dc.int_to_data[int(X_seed[0, idx] * dict_size)]
@@ -94,8 +99,8 @@ def main():
         pred = generator.predict(x)
         print(pred)
         # pred = np.argmax(pred[0])
-        pred_softmax = np.exp(pred[0]) / np.sum(np.exp(pred[0]))
-        pred_int = np.random.choice(dict_size, p=pred_softmax)
+        # pred_softmax = np.exp(pred[0]) / np.sum(np.exp(pred[0]))
+        pred_int = np.random.choice(range(len(dict_size)), p=pred[0])
         print(pred_int)
         # convert to string representation
         pred_str = dc.int_to_data[pred_int]
