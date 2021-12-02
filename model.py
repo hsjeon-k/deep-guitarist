@@ -29,7 +29,6 @@ class LSTMModel(object):
         # self.model.add(Dropout(0.3))
         # self.model.add(LSTM(256, return_sequences=True))
         # self.model.add(Dropout(0.3))
-        # self.model.add(LSTM(128))
         self.model.add(LSTM(128, input_shape=(1, in_size)))
         self.model.add(Dropout(0.5))
         self.model.add(Dense(dict_size, activation=softmax))
@@ -98,8 +97,6 @@ def main():
         # predict the next out_size 16th notes from the pattern
         pred = generator.predict(x)
         print(pred)
-        # pred = np.argmax(pred[0])
-        # pred_softmax = np.exp(pred[0]) / np.sum(np.exp(pred[0]))
         pred_int = np.random.choice(range(len(dict_size)), p=pred[0])
         print(pred_int)
         # convert to string representation

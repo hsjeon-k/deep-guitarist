@@ -131,7 +131,6 @@ class DatasetConversion(object):
         self.int_to_data = dict([(i, comb) for i, comb in enumerate(possible_all)])
         # convert combinations to floats
         input_ints = [[self.data_to_int[comb]/len(self.data_to_int) for comb in input_x] for input_x in inputs]
-        # output_ints = [[self.data_to_int[comb]/len(self.data_to_int) for comb in output_y] for output_y in outputs]
 
         output_ints = np.zeros((len(outputs), len(self.data_to_int)), dtype=bool)
         for i in range(len(outputs)):
@@ -139,7 +138,6 @@ class DatasetConversion(object):
 
         # reshape the data to fit LSTM input format
         X = np.array(input_ints).reshape(len(inputs), num_input_size, 1)
-        # Y = np.array(output_ints).reshape(len(outputs), num_output_size, 1)
         Y = output_ints
 
         return X, Y, len(self.data_to_int)

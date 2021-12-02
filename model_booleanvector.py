@@ -1,6 +1,6 @@
 '''
-File: model.py
-Usage: python3 model.py midi_directory_path
+File: model_booleanvector.py
+Usage: python3 model_booleanvector.py midi_directory_path
 
 This file defines the LSTM model for music generation.
 '''
@@ -17,7 +17,7 @@ from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.callbacks import EarlyStopping, TerminateOnNaN
 
 # from dataset_conversion import DatasetConversion
-from dataset_conversion_new import DatasetConversion
+from dataset_conversion_booleanvector import DatasetConversion
 from read_midi import arr_to_midi
 
 ## class definition
@@ -33,7 +33,6 @@ class LSTMModel(object):
         self.model.add(LSTM(64))
         self.model.add(Dropout(0.5))
         self.model.add(Dense(out_size))
-        # self.model.add(Dense(out_size, activation='sigmoid'))
 
         self.optimizer = None
 
@@ -76,9 +75,6 @@ def test(dir_path, input_window_size, step, thresholds):
     step = step
     X, Y = dc.txt_to_dataset(input_window_size=input_window_size, output_window_size=output_window_size, step=step)
 
-    # X = X[:, 32:96, :]
-    # Y = Y[:, 32:96, :]
-
     num_examples, output_size = X.shape[0], X.shape[1]
 
     # transpose NOTES_SIZE x input_window_size
@@ -104,13 +100,8 @@ def test(dir_path, input_window_size, step, thresholds):
     for threshold in thresholds:
 
         for i in range(gen_epoch):
-            # x = np.reshape(pattern, (1, in_size, 1))
-            # predict the next out_size 16th notes from the pattern
-            # pred = generator.predict(x).reshape(1, out_size, 1)
             pred = generator.predict(pattern.reshape(1, input_window_size, output_size)).reshape(output_window_size, output_size)
             bool_pred = np.array((pred > threshold).astype(int))
-            # convert to string representation
-            # pred_str = dc.dataset_to_str(pred)
             # append the new output, and remove the equivalent amount of input from the start for the next prediction
             pattern = np.concatenate((pattern, bool_pred), axis=0)
             pattern = pattern[output_window_size:, :]
@@ -118,7 +109,6 @@ def test(dir_path, input_window_size, step, thresholds):
 
         print(pred_result)
 
-        # pred_file = dc.str_to_midi(pred_result, filename='pred_output.mid')
         pred_file = arr_to_midi(pred_result[1:, :].T, \
                                 filename=('real_new_output/pred_output_' + str(input_window_size) + '_' + str(step) + '_' + str(threshold) + '.mid'))
 
